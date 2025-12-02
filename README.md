@@ -2,6 +2,17 @@
 
 A comprehensive web application built with FastAPI that checks if two strings are anagrams of each other. This project demonstrates best practices in software development including OOP principles, SOLID design, BDD testing, and comprehensive test coverage.
 
+## 📚 Quick Links
+
+- **📖 [Complete Documentation](docs/)** - All documentation files
+- **🚀 [Getting Started](docs/GETTING_STARTED.md)** - Quick setup guide
+- **⚙️ [Setup Guide](docs/SETUP.md)** - Detailed installation
+- **🐙 [GitHub Setup](docs/GITHUB_SETUP.md)** - Repository and CI/CD setup
+- **☁️ [Fly.io Deployment](docs/FLYIO_DEPLOYMENT.md)** - Production deployment
+- **📊 [Pipeline Architecture](docs/PIPELINE_ARCHITECTURE.md)** - CI/CD details
+- **🎯 [Demo Guide](docs/DEMO.md)** - Live demonstration
+- **⌨️ [Commands Reference](docs/COMMANDS.md)** - All available commands
+
 ## Features
 
 - **Web UI**: Interactive web interface for checking anagrams
@@ -153,12 +164,33 @@ SMBC/
 │   ├── Anagram_Checker.feature      # Main feature file
 │   ├── Anagram_Checker_Part1.feature # For parallel execution
 │   └── Anagram_Checker_Part2.feature # For parallel execution
+├── docs/                            # All documentation
+│   ├── START_HERE.txt
+│   ├── SETUP.md
+│   ├── GETTING_STARTED.md
+│   ├── GITHUB_SETUP.md
+│   ├── FLYIO_DEPLOYMENT.md
+│   ├── PIPELINE_ARCHITECTURE.md
+│   ├── DEMO.md
+│   ├── COMMANDS.md
+│   └── ...
+├── scripts/                         # All executable scripts
+│   ├── run_tests.sh
+│   ├── run_unit_tests.sh
+│   ├── run_api_tests.sh
+│   ├── run_bdd_tests.sh
+│   ├── run_parallel_tests.sh
+│   ├── start_app.sh
+│   └── verify_setup.sh
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                   # CI/CD pipeline
 ├── requirements.txt
 ├── pytest.ini
 ├── conftest.py
+├── Dockerfile
+├── fly.toml
+├── Makefile
 └── README.md
 ```
 
@@ -174,14 +206,24 @@ SMBC/
 
 #### All Tests
 ```bash
-chmod +x run_tests.sh
-./run_tests.sh
+chmod +x scripts/run_tests.sh
+./scripts/run_tests.sh
+```
+
+Or using Makefile:
+```bash
+make test
 ```
 
 #### Unit Tests Only
 ```bash
-chmod +x run_unit_tests.sh
-./run_unit_tests.sh
+chmod +x scripts/run_unit_tests.sh
+./scripts/run_unit_tests.sh
+```
+
+Or using Makefile:
+```bash
+make test-unit
 ```
 
 Or directly:
@@ -191,8 +233,13 @@ pytest tests/unit/ -v -m unit --cov=src --cov-report=html
 
 #### API Tests Only
 ```bash
-chmod +x run_api_tests.sh
-./run_api_tests.sh
+chmod +x scripts/run_api_tests.sh
+./scripts/run_api_tests.sh
+```
+
+Or using Makefile:
+```bash
+make test-api
 ```
 
 Or directly:
@@ -202,24 +249,34 @@ pytest tests/api/ -v -m api
 
 #### BDD UI Tests Only
 ```bash
-chmod +x run_bdd_tests.sh
-./run_bdd_tests.sh
+chmod +x scripts/run_bdd_tests.sh
+./scripts/run_bdd_tests.sh
+```
+
+Or using Makefile:
+```bash
+make test-bdd
 ```
 
 Or directly:
 ```bash
-pytest tests/bdd/ -v -m bdd --headed
+pytest tests/bdd/ -v --browser firefox --headed
 ```
 
 #### Parallel Test Execution
 ```bash
-chmod +x run_parallel_tests.sh
-./run_parallel_tests.sh
+chmod +x scripts/run_parallel_tests.sh
+./scripts/run_parallel_tests.sh
+```
+
+Or using Makefile:
+```bash
+make test-parallel
 ```
 
 Or directly:
 ```bash
-pytest tests/bdd/test_anagram_ui.py -v -n 2
+pytest tests/bdd/test_anagram_ui.py -v -n 2 --browser firefox
 ```
 
 This runs the two feature files (Part1 and Part2) in parallel using 2 workers.
