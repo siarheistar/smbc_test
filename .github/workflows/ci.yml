@@ -13,7 +13,7 @@ env:
 jobs:
   # Unit Tests - Parallel execution
   unit-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container:
       image: python:3.11-slim
 
@@ -62,7 +62,7 @@ jobs:
 
   # API Tests - Parallel execution
   api-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container:
       image: python:3.11-slim
 
@@ -101,7 +101,7 @@ jobs:
 
   # BDD Tests - Docker Matrix with multiple browsers
   bdd-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -114,10 +114,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install Python
+      run: |
+        apt-get update
+        apt-get install -y python3 python3-pip python-is-python3
 
     - name: Cache pip packages
       uses: actions/cache@v3
@@ -146,7 +146,7 @@ jobs:
 
   # Aggregate results and generate custom report
   aggregate-and-report:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [unit-tests, api-tests, bdd-tests]
     if: always()
 
