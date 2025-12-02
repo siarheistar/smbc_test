@@ -1,0 +1,13 @@
+{
+  "name": "custom-links",
+  "data": [
+    {
+      "name": "Coverage Report",
+      "url": "../htmlcov/index.html"
+    },
+    {
+      "name": "Test Reports Index",
+      "url": "../index.html"
+    }
+  ]
+}
