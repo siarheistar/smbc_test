@@ -193,33 +193,46 @@ jobs:
     - name: Calculate test statistics
       id: stats
       run: |
-        # Count total tests from allure results
-        total_tests=$(find allure-results -name "*-result.json" | wc -l)
+        python <<'PY'
+import json, pathlib
+from xml.etree import ElementTree as ET
 
-        # Get coverage if available
-        if [ -f "artifacts/coverage-report/coverage.xml" ]; then
-          # Extract coverage percentage from coverage.xml
-          coverage=$(grep -oP 'line-rate="\K[0-9.]+' artifacts/coverage-report/coverage.xml | head -1)
-          coverage_percent=$(echo "$coverage * 100" | bc -l | xargs printf "%.1f")
-        else
-          coverage_percent="N/A"
-        fi
+allure_dir = pathlib.Path("allure-results")
+total = passed = failed = 0
 
-        # Count passed/failed tests
-        passed=$(find allure-results -name "*-result.json" -exec grep -l '"status":"passed"' {} \; | wc -l)
-        failed=$(find allure-results -name "*-result.json" -exec grep -l '"status":"failed"' {} \; | wc -l)
+for path in allure_dir.rglob("*-result.json"):
+    try:
+        data = json.loads(path.read_text())
+    except Exception:
+        continue
+    total += 1
+    status = str(data.get("status", "")).lower()
+    if status == "passed":
+        passed += 1
+    elif status == "failed":
+        failed += 1
 
-        if [ $total_tests -gt 0 ]; then
-          pass_rate=$(echo "scale=1; $passed * 100 / $total_tests" | bc)
-        else
-          pass_rate="0"
-        fi
+pass_rate = round((passed * 100 / total), 1) if total else 0.0
 
-        echo "total_tests=$total_tests" >> $GITHUB_OUTPUT
-        echo "coverage=$coverage_percent" >> $GITHUB_OUTPUT
-        echo "passed=$passed" >> $GITHUB_OUTPUT
-        echo "failed=$failed" >> $GITHUB_OUTPUT
-        echo "pass_rate=$pass_rate" >> $GITHUB_OUTPUT
+coverage_percent = "N/A"
+cov_path = pathlib.Path("artifacts/coverage-report/coverage.xml")
+if cov_path.exists():
+    try:
+        tree = ET.parse(cov_path)
+        rate = tree.getroot().attrib.get("line-rate")
+        if rate is not None:
+            coverage_percent = f"{float(rate) * 100:.1f}"
+    except Exception:
+        pass
+
+with open("/tmp/github_output", "w") as fh:
+    fh.write(f"total_tests={total}\n")
+    fh.write(f"coverage={coverage_percent}\n")
+    fh.write(f"passed={passed}\n")
+    fh.write(f"failed={failed}\n")
+    fh.write(f"pass_rate={pass_rate}\n")
+PY
+        cat /tmp/github_output >> $GITHUB_OUTPUT
 
     - name: Get Allure history
       uses: actions/checkout@v3
