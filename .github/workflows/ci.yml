@@ -693,3 +693,23 @@ PY
             repo: context.repo.repo,
             body: comment
           });
+
+  deploy:
+    name: Deploy to Fly.io
+    runs-on: ubuntu-22.04
+    needs: aggregate-and-report
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Flyctl
+        run: |
+          curl -L https://fly.io/install.sh | sh
+          echo "$HOME/.fly/bin" >> $GITHUB_PATH
+
+      - name: Deploy
+        run: |
+          flyctl deploy --remote-only --config fly.toml
