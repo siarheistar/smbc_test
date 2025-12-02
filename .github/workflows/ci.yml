@@ -44,7 +44,7 @@ jobs:
 
     - name: Upload unit test results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: allure-results-unit
         path: allure-results-unit
@@ -52,7 +52,7 @@ jobs:
 
     - name: Upload coverage report
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: |
@@ -93,7 +93,7 @@ jobs:
 
     - name: Upload API test results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: allure-results-api
         path: allure-results-api
@@ -138,7 +138,7 @@ jobs:
 
     - name: Upload BDD test results for ${{ matrix.browser }}
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: allure-results-bdd-${{ matrix.browser }}
         path: allure-results-bdd-${{ matrix.browser }}
@@ -159,7 +159,7 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Download all test results
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: artifacts
 
