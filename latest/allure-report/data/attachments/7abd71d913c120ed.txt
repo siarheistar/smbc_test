@@ -1,0 +1,3 @@
+Input 1: school master
+Input 2: the classroom
+Result: TRUE - These are anagrams!
