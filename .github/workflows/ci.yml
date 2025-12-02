@@ -10,10 +10,13 @@ env:
   PYTHON_VERSION: '3.11'
   RUN_ID: ${{ github.run_number }}-${{ github.run_id }}
 
+permissions:
+  contents: write
+
 jobs:
   # Unit Tests - Parallel execution
   unit-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container:
       image: python:3.11-slim
 
@@ -24,14 +27,6 @@ jobs:
       run: |
         apt-get update
         apt-get install -y git
-
-    - name: Cache pip packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
 
     - name: Install dependencies
       run: |
@@ -62,7 +57,7 @@ jobs:
 
   # API Tests - Parallel execution
   api-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container:
       image: python:3.11-slim
 
@@ -72,20 +67,30 @@ jobs:
     - name: Install system dependencies
       run: |
         apt-get update
-        apt-get install -y git
-
-    - name: Cache pip packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+        apt-get install -y git curl procps
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Start API server
+      run: |
+        uvicorn src.app:app --host 0.0.0.0 --port 8000 &
+        echo $! > api_server.pid
+
+    - name: Wait for API to be ready
+      run: |
+        for i in {1..30}; do
+          if curl -sf http://localhost:8000/health > /dev/null; then
+            echo "API is up and running"
+            exit 0
+          fi
+          echo "Waiting for API... attempt $i/30"
+          sleep 1
+        done
+        echo "API did not become ready in time"
+        exit 1
 
     - name: Run API tests
       run: |
@@ -101,7 +106,7 @@ jobs:
 
   # BDD Tests - Docker Matrix with multiple browsers
   bdd-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -110,27 +115,39 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.40.0-jammy
       options: --user root
+    env:
+      HOME: /root
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install Python and dependencies
+      run: |
+        apt-get update
+        apt-get install -y python3 python3-pip python-is-python3 curl procps
 
-    - name: Cache pip packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Start API server
+      run: |
+        uvicorn src.app:app --host 0.0.0.0 --port 8000 &
+        echo $! > api_server.pid
+
+    - name: Wait for API to be ready
+      run: |
+        for i in {1..30}; do
+          if curl -sf http://localhost:8000/health > /dev/null; then
+            echo "API is up and running"
+            exit 0
+          fi
+          echo "Waiting for API... attempt $i/30"
+          sleep 1
+        done
+        echo "API did not become ready in time"
+        exit 1
 
     - name: Run BDD tests with ${{ matrix.browser }}
       run: |
@@ -146,7 +163,7 @@ jobs:
 
   # Aggregate results and generate custom report
   aggregate-and-report:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [unit-tests, api-tests, bdd-tests]
     if: always()
 
@@ -163,21 +180,29 @@ jobs:
       with:
         path: artifacts
 
+    - name: List downloaded artifacts
+      run: |
+        echo "Downloaded artifacts:"
+        ls -laR artifacts/
+
     - name: Merge all Allure results
       run: |
         mkdir -p allure-results
 
         # Copy all allure results to single directory
         if [ -d "artifacts/allure-results-unit" ]; then
+          echo "Copying unit test results..."
           cp -r artifacts/allure-results-unit/* allure-results/ || true
         fi
 
         if [ -d "artifacts/allure-results-api" ]; then
+          echo "Copying API test results..."
           cp -r artifacts/allure-results-api/* allure-results/ || true
         fi
 
         for browser in firefox chromium webkit; do
           if [ -d "artifacts/allure-results-bdd-$browser" ]; then
+            echo "Copying BDD test results for $browser..."
             cp -r artifacts/allure-results-bdd-$browser/* allure-results/ || true
           fi
         done
@@ -188,33 +213,53 @@ jobs:
     - name: Calculate test statistics
       id: stats
       run: |
-        # Count total tests from allure results
-        total_tests=$(find allure-results -name "*-result.json" | wc -l)
+        python3 <<'PYTHON_SCRIPT'
+        import json
+        import pathlib
+        from xml.etree import ElementTree as ET
 
-        # Get coverage if available
-        if [ -f "artifacts/coverage-report/coverage.xml" ]; then
-          # Extract coverage percentage from coverage.xml
-          coverage=$(grep -oP 'line-rate="\K[0-9.]+' artifacts/coverage-report/coverage.xml | head -1)
-          coverage_percent=$(echo "$coverage * 100" | bc -l | xargs printf "%.1f")
-        else
-          coverage_percent="N/A"
-        fi
+        allure_dir = pathlib.Path("allure-results")
+        total = passed = failed = 0
 
-        # Count passed/failed tests
-        passed=$(find allure-results -name "*-result.json" -exec grep -l '"status":"passed"' {} \; | wc -l)
-        failed=$(find allure-results -name "*-result.json" -exec grep -l '"status":"failed"' {} \; | wc -l)
+        # Count test results
+        for path in allure_dir.rglob("*-result.json"):
+            try:
+                data = json.loads(path.read_text())
+                status = str(data.get("status", "")).lower()
+                total += 1
+                if status == "passed":
+                    passed += 1
+                else:
+                    failed += 1
+            except Exception as e:
+                print(f"Error reading {path}: {e}")
+                continue
 
-        if [ $total_tests -gt 0 ]; then
-          pass_rate=$(echo "scale=1; $passed * 100 / $total_tests" | bc)
-        else
-          pass_rate="0"
-        fi
+        pass_rate = round((passed * 100 / total), 1) if total > 0 else 0.0
 
-        echo "total_tests=$total_tests" >> $GITHUB_OUTPUT
-        echo "coverage=$coverage_percent" >> $GITHUB_OUTPUT
-        echo "passed=$passed" >> $GITHUB_OUTPUT
-        echo "failed=$failed" >> $GITHUB_OUTPUT
-        echo "pass_rate=$pass_rate" >> $GITHUB_OUTPUT
+        # Get coverage
+        coverage_percent = "N/A"
+        cov_path = pathlib.Path("artifacts/coverage-report/coverage.xml")
+        if cov_path.exists():
+            try:
+                tree = ET.parse(cov_path)
+                rate = tree.getroot().attrib.get("line-rate")
+                if rate is not None:
+                    coverage_percent = f"{float(rate) * 100:.1f}"
+            except Exception as e:
+                print(f"Error reading coverage: {e}")
+
+        # Write to GitHub output
+        import os
+        with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+            fh.write(f"total_tests={total}\n")
+            fh.write(f"coverage={coverage_percent}\n")
+            fh.write(f"passed={passed}\n")
+            fh.write(f"failed={failed}\n")
+            fh.write(f"pass_rate={pass_rate}\n")
+
+        print(f"Statistics: {total} tests, {passed} passed, {failed} failed, {pass_rate}% pass rate, {coverage_percent}% coverage")
+        PYTHON_SCRIPT
 
     - name: Get Allure history
       uses: actions/checkout@v3
@@ -228,6 +273,10 @@ jobs:
       run: |
         if [ -d "gh-pages/allure-history" ]; then
           cp -r gh-pages/allure-history allure-history
+          echo "Copied Allure history"
+        else
+          echo "No Allure history found, starting fresh"
+          mkdir -p allure-history
         fi
 
     - name: Generate Allure Report
@@ -239,11 +288,18 @@ jobs:
         allure_history: allure-history
         keep_reports: 20
 
+    - name: Fix permissions for generated reports
+      run: |
+        sudo chown -R $USER:$USER allure-history allure-report || true
+        sudo chmod -R u+w allure-history allure-report || true
+        echo "Permissions fixed for allure-history and allure-report"
+
     - name: Copy coverage report to allure-history
       run: |
         mkdir -p allure-history/htmlcov
         if [ -d "artifacts/coverage-report/htmlcov" ]; then
           cp -r artifacts/coverage-report/htmlcov/* allure-history/htmlcov/
+          echo "Coverage report copied"
         fi
 
     - name: Create custom index page
@@ -461,11 +517,11 @@ jobs:
                 // This will be populated with actual data from test runs
                 const currentRun = {
                     runId: '${{ env.RUN_ID }}',
-                    totalTests: ${{ steps.stats.outputs.total_tests }},
-                    passed: ${{ steps.stats.outputs.passed }},
-                    failed: ${{ steps.stats.outputs.failed }},
+                    totalTests: ${{ steps.stats.outputs.total_tests || 0 }},
+                    passed: ${{ steps.stats.outputs.passed || 0 }},
+                    failed: ${{ steps.stats.outputs.failed || 0 }},
                     coverage: '${{ steps.stats.outputs.coverage }}',
-                    passRate: ${{ steps.stats.outputs.pass_rate }},
+                    passRate: ${{ steps.stats.outputs.pass_rate || 0 }},
                     timestamp: new Date().toISOString(),
                     allureUrl: './latest/index.html',
                     coverageUrl: './htmlcov/index.html'
@@ -545,6 +601,8 @@ jobs:
 
     - name: Customize Allure Report
       run: |
+        mkdir -p allure-report/widgets
+
         # Create custom widgets for Allure report
         cat > allure-report/widgets/custom-links.json << 'EOF'
         {
@@ -589,12 +647,14 @@ jobs:
         # Inject the header into the main Allure HTML file
         if [ -f "allure-report/index.html" ]; then
           sed -i '/<body>/r allure-report/custom-header.html' allure-report/index.html
+          echo "Custom header injected into Allure report"
         fi
 
     - name: Copy latest report
       run: |
-        # Create latest symlink/copy
+        # Create latest copy
         cp -r allure-report allure-history/latest
+        echo "Latest report copied"
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
@@ -637,3 +697,72 @@ jobs:
             repo: context.repo.repo,
             body: comment
           });
+
+  # Deploy to Fly.io - Only on merge to main from develop
+  deploy-to-flyio:
+    name: Deploy to Fly.io
+    runs-on: ubuntu-22.04
+    needs: aggregate-and-report
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      (contains(github.event.head_commit.message, 'Merge') ||
+       contains(github.event.head_commit.message, 'merge'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Get deployment URL
+        id: fly-url
+        run: |
+          APP_NAME=$(grep "^app = " fly.toml | cut -d'"' -f2)
+          echo "url=https://${APP_NAME}.fly.dev" >> $GITHUB_OUTPUT
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting for deployment to be ready..."
+          sleep 10
+
+          URL="${{ steps.fly-url.outputs.url }}/health"
+          for i in {1..30}; do
+            if curl -sf "$URL" > /dev/null; then
+              echo "✅ Deployment successful! App is healthy."
+              echo "🚀 Application URL: ${{ steps.fly-url.outputs.url }}"
+              exit 0
+            fi
+            echo "Waiting for app to be ready... attempt $i/30"
+            sleep 10
+          done
+
+          echo "⚠️ Deployment completed but health check failed. Check Fly.io dashboard."
+          exit 0
+
+      - name: Create deployment summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## 🚀 Fly.io Deployment
+
+          **Status:** Completed
+          **Application:** anagram
+          **URL:** ${{ steps.fly-url.outputs.url }}
+
+          ### Quick Links
+          - 🌐 [View Application](${{ steps.fly-url.outputs.url }})
+          - 📊 [Fly.io Dashboard](https://fly.io/apps/anagram)
+          - 📖 [API Documentation](${{ steps.fly-url.outputs.url }}/docs)
+
+          ### Deployment Details
+          - **Commit:** ${{ github.sha }}
+          - **Branch:** main
+          - **Triggered by:** Merge from develop
+          EOF

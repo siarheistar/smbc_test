@@ -147,9 +147,17 @@ async def root():
                     <li><strong>school master</strong> and <strong>the classroom</strong> → TRUE</li>
                 </ul>
             </div>
+
+            <footer style="text-align: center; color: #777; margin-top: 25px; font-size: 14px;">
+                <span id="copyright"></span>
+            </footer>
         </div>
 
         <script>
+            // Set current year in footer
+            document.getElementById('copyright').textContent =
+              `\u00A9 ${new Date().getFullYear()} Siarhei Staravoitau`;
+
             document.getElementById('anagramForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
 
