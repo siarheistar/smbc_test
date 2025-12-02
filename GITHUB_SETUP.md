@@ -18,7 +18,7 @@ gh auth login
 gh repo create smbc_test --public --description "Anagram Checker with comprehensive BDD, API, and Unit testing"
 
 # Add the remote
-git remote add origin https://github.com/YOUR_USERNAME/smbc_test.git
+git remote add origin https://github.com/siarheistar/smbc_test.git
 
 # Commit all changes (if not done already)
 git add .
