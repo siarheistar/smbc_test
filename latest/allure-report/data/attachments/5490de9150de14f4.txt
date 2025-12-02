@@ -1,0 +1,3 @@
+Input 1: a gentleman
+Input 2: elegant man
+Result: TRUE - These are anagrams!
