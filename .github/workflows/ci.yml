@@ -90,6 +90,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Start API server
+      run: |
+        uvicorn src.app:app --host 0.0.0.0 --port 8000 &
+        echo $! > api_server.pid
+
+    - name: Wait for API to be ready
+      run: |
+        for i in {1..20}; do
+          if curl -sf http://localhost:8000/health > /dev/null; then
+            echo "API is up"
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "API did not become ready in time"
+        exit 1
+
     - name: Run API tests
       run: |
         pytest tests/api/ -v --alluredir=allure-results-api
@@ -136,6 +153,23 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Start API server
+      run: |
+        uvicorn src.app:app --host 0.0.0.0 --port 8000 &
+        echo $! > api_server.pid
+
+    - name: Wait for API to be ready
+      run: |
+        for i in {1..30}; do
+          if curl -sf http://localhost:8000/health > /dev/null; then
+            echo "API is up"
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "API did not become ready in time"
+        exit 1
 
     - name: Run BDD tests with ${{ matrix.browser }}
       run: |
@@ -205,11 +239,12 @@ for path in allure_dir.rglob("*-result.json"):
         data = json.loads(path.read_text())
     except Exception:
         continue
-    total += 1
     status = str(data.get("status", "")).lower()
+    total += 1
     if status == "passed":
         passed += 1
-    elif status == "failed":
+    else:
+        # Treat any non-passed status (failed, broken, skipped, unknown) as failed for pass-rate purposes
         failed += 1
 
 pass_rate = round((passed * 100 / total), 1) if total else 0.0
