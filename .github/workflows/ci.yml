@@ -288,6 +288,12 @@ jobs:
         allure_history: allure-history
         keep_reports: 20
 
+    - name: Fix permissions for generated reports
+      run: |
+        sudo chown -R $USER:$USER allure-history allure-report || true
+        sudo chmod -R u+w allure-history allure-report || true
+        echo "Permissions fixed for allure-history and allure-report"
+
     - name: Copy coverage report to allure-history
       run: |
         mkdir -p allure-history/htmlcov
