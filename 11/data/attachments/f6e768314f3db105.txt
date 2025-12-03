@@ -1,4 +1,0 @@
-Input 1: eleven plus two
-Input 2: twelve plus one
-Expected: true
-Actual: True

@@ -1,4 +1,0 @@
-Input 1: 日本
-Input 2: 本日
-Expected: True
-Actual: True

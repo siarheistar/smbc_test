@@ -1,3 +1,0 @@
-Input 1: test@123
-Input 2: 123@test
-Result: TRUE - These are anagrams!

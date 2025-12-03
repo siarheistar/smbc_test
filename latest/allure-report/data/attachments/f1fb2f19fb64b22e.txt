@@ -1,4 +1,0 @@
-Input 1: conversation
-Input 2: voices rant on
-Expected: true
-Actual: True

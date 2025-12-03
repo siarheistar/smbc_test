@@ -1,3 +1,0 @@
-Input 1: naïve
-Input 2: veïan
-Result: TRUE - These are anagrams!

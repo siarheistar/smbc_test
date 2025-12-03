@@ -1,3 +1,0 @@
-Input 1: hello_world
-Input 2: world_hello
-Result: TRUE - These are anagrams!

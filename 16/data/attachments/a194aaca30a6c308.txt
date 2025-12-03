@@ -1,3 +1,0 @@
-Input 1: 100%
-Input 2: %001
-Result: TRUE - These are anagrams!

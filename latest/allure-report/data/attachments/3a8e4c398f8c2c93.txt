@@ -1,4 +1,0 @@
-Input 1: a&b
-Input 2: b&a
-Expected: True
-Actual: True

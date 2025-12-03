@@ -1,4 +1,0 @@
-Input 1: café
-Input 2: éfac
-Expected: True
-Actual: True

@@ -1,3 +1,0 @@
-Input 1: hello
-Input 2: world
-Result: FALSE - These are not anagrams

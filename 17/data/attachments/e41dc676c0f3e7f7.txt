@@ -1,4 +1,0 @@
-Input 1: a$b$c
-Input 2: c$b$a
-Expected: True
-Actual: True

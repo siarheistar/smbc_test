@@ -1,4 +1,0 @@
-Input 1: school master
-Input 2: the classroom
-Expected: true
-Actual: True

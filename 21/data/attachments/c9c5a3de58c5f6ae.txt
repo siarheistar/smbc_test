@@ -1,3 +1,0 @@
-Input 1: 123
-Input 2: 321
-Result: TRUE - These are anagrams!

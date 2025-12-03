@@ -1,3 +1,0 @@
-Input 1: abc
-Input 2: abc
-Result: TRUE - These are anagrams!

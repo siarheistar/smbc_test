@@ -1,3 +1,0 @@
-Input 1: Funeral
-Input 2: Real fun
-Result: TRUE - These are anagrams!

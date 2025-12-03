@@ -1,2 +1,0 @@
-String length: 10000 characters
-Result: True

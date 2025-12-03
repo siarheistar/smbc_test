@@ -1,3 +1,0 @@
-Input 1: The Quick Brown Fox
-Input 2: xoF nworB kciuQ ehT
-Result: TRUE - These are anagrams!

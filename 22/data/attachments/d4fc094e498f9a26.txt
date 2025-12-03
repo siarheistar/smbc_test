@@ -1,3 +1,0 @@
-Input 1: The eyes
-Input 2: They see
-Result: TRUE - These are anagrams!
