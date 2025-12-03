@@ -1,0 +1,3 @@
+Input 1: aaa
+Input 2: aaa
+Result: TRUE - These are anagrams!

@@ -1,0 +1,3 @@
+Input 1: HeLLo
+Input 2: oLLeH
+Result: TRUE - These are anagrams!
