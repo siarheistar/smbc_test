@@ -229,27 +229,71 @@ jobs:
         rm -rf allure-results
         mkdir -p allure-results
 
-        expected_dirs=(
-          "artifacts/allure-results-unit"
-          "artifacts/allure-results-api"
-          "artifacts/allure-results-bdd-firefox"
-          "artifacts/allure-results-bdd-chromium"
-          "artifacts/allure-results-bdd-webkit"
-        )
+        echo "=== Artifact Directory Structure ==="
+        ls -la artifacts/
+        echo ""
 
-        for d in "${expected_dirs[@]}"; do
-          if [ -d "$d" ]; then
-            echo "Copying results from $d ..."
-            find "$d" -type f -name "*-result.json" -exec cp {} allure-results/ \;
-            find "$d" -type f ! -name "*-result.json" -exec cp {} allure-results/ \;
+        echo "=== Checking each artifact directory ==="
+        for artifact_name in allure-results-unit allure-results-api allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
+          echo "Checking artifacts/${artifact_name}..."
+          if [ -d "artifacts/${artifact_name}" ]; then
+            echo "  ✓ Directory exists"
+            echo "  Contents:"
+            ls -la "artifacts/${artifact_name}/" | head -10
+            result_count=$(find "artifacts/${artifact_name}" -name "*-result.json" | wc -l)
+            echo "  Result files: ${result_count}"
           else
-            echo "WARNING: Expected artifact directory missing: $d" >&2
+            echo "  ✗ Directory NOT found"
           fi
+          echo ""
         done
 
-        echo "Merged allure results:"
-        ls -la allure-results/
-        echo "Total merged results: $(find allure-results -name \"*-result.json\" | wc -l)"
+        echo "=== Merging results ==="
+        total_copied=0
+
+        for artifact_name in allure-results-unit allure-results-api allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
+          artifact_dir="artifacts/${artifact_name}"
+
+          if [ -d "$artifact_dir" ]; then
+            echo "Copying from ${artifact_dir}..."
+
+            # Copy all files from the artifact directory
+            # Use find with -print to see what's being copied
+            result_files=$(find "$artifact_dir" -type f -name "*-result.json" -print)
+            result_count=$(echo "$result_files" | grep -c "result.json" || echo "0")
+
+            if [ "$result_count" -gt 0 ]; then
+              echo "  Copying ${result_count} result files..."
+              find "$artifact_dir" -type f -name "*-result.json" -exec cp -v {} allure-results/ \;
+
+              # Copy non-result files (containers, attachments, etc.)
+              find "$artifact_dir" -type f ! -name "*-result.json" -exec cp -v {} allure-results/ \;
+
+              total_copied=$((total_copied + result_count))
+              echo "  ✓ Copied ${result_count} test results"
+            else
+              echo "  ✗ No result files found!"
+            fi
+          else
+            echo "  ✗ WARNING: ${artifact_dir} not found!"
+          fi
+          echo ""
+        done
+
+        echo "=== Merge Summary ==="
+        echo "Total result files copied: ${total_copied}"
+        actual_count=$(find allure-results -name "*-result.json" | wc -l)
+        echo "Actual files in allure-results: ${actual_count}"
+
+        if [ "$actual_count" -ne "$total_copied" ]; then
+          echo "⚠️  WARNING: Count mismatch! Expected ${total_copied}, got ${actual_count}"
+        fi
+
+        echo ""
+        echo "Contents of allure-results:"
+        ls -la allure-results/ | head -20
+        echo "..."
+        echo "Total files: $(ls allure-results | wc -l)"
 
     - name: Calculate test statistics
       id: stats
@@ -320,6 +364,16 @@ jobs:
           mkdir -p allure-history
         fi
 
+    - name: Debug before Allure generation
+      run: |
+        echo "=== allure-results directory (INPUT to Allure) ==="
+        echo "Total result files: $(find allure-results -name '*-result.json' | wc -l)"
+        ls -la allure-results/ | head -20
+        echo ""
+        echo "=== allure-history directory ==="
+        ls -la allure-history/ 2>/dev/null || echo "allure-history does not exist yet"
+        echo ""
+
     - name: Generate Allure Report
       uses: simple-elf/allure-report-action@master
       id: allure-report
@@ -328,6 +382,17 @@ jobs:
         allure_report: allure-report
         allure_history: allure-history
         keep_reports: 20
+
+    - name: Debug after Allure generation
+      run: |
+        echo "=== allure-report directory (OUTPUT from Allure) ==="
+        ls -la allure-report/ | head -20
+        echo ""
+        if [ -f "allure-report/widgets/summary.json" ]; then
+          echo "=== summary.json content ==="
+          cat allure-report/widgets/summary.json
+        fi
+        echo ""
 
     - name: Fix permissions for generated reports
       run: |
@@ -656,6 +721,18 @@ jobs:
             {
               "name": "Test Reports Index",
               "url": "../index.html"
+            },
+            {
+              "name": "Playwright Report (Firefox)",
+              "url": "../playwright-reports/firefox.html"
+            },
+            {
+              "name": "Playwright Report (Chromium)",
+              "url": "../playwright-reports/chromium.html"
+            },
+            {
+              "name": "Playwright Report (WebKit)",
+              "url": "../playwright-reports/webkit.html"
             }
           ]
         }
@@ -680,7 +757,13 @@ jobs:
             <h2 style="margin: 0;">Run ID: ${{ env.RUN_ID }}</h2>
             <p style="margin: 5px 0 0 0;">
                 <a href="../index.html" style="color: white; text-decoration: underline;">← Back to Test Reports Index</a> |
-                <a href="../htmlcov/index.html" style="color: white; text-decoration: underline;">View Coverage Report</a>
+                <a href="../htmlcov/index.html" style="color: white; text-decoration: underline;">Coverage Report</a>
+            </p>
+            <p style="margin: 5px 0 0 0; font-size: 14px;">
+                Playwright Reports:
+                <a href="../playwright-reports/firefox.html" style="color: white; text-decoration: underline;">Firefox</a> |
+                <a href="../playwright-reports/chromium.html" style="color: white; text-decoration: underline;">Chromium</a> |
+                <a href="../playwright-reports/webkit.html" style="color: white; text-decoration: underline;">WebKit</a>
             </p>
         </div>
         EOF
@@ -690,6 +773,35 @@ jobs:
           sed -i '/<body>/r allure-report/custom-header.html' allure-report/index.html
           echo "Custom header injected into Allure report"
         fi
+
+    - name: Merge Playwright reports
+      run: |
+        mkdir -p allure-history/playwright-reports
+
+        # Copy Playwright HTML reports from each browser artifact
+        for browser in firefox chromium webkit; do
+          artifact_dir="artifacts/playwright-report-${browser}"
+          if [ -d "$artifact_dir" ] && [ -f "$artifact_dir/playwright-report.html" ]; then
+            echo "Copying Playwright report for $browser..."
+            cp "$artifact_dir/playwright-report.html" "allure-history/playwright-reports/${browser}.html"
+          else
+            echo "WARNING: Playwright report for $browser not found at $artifact_dir/playwright-report.html"
+            # Create a placeholder if report is missing
+            cat > "allure-history/playwright-reports/${browser}.html" << EOF
+        <!DOCTYPE html>
+        <html>
+        <head><title>Playwright Report - ${browser}</title></head>
+        <body>
+          <h1>Playwright Report for ${browser}</h1>
+          <p>No report available for this browser in this run.</p>
+        </body>
+        </html>
+        EOF
+          fi
+        done
+
+        echo "Playwright reports merged successfully"
+        ls -la allure-history/playwright-reports/
 
     - name: Copy latest report
       run: |
