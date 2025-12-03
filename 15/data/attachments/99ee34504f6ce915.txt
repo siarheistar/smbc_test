@@ -1,0 +1,4 @@
+Input 1: '\thello\n'
+Input 2: 'olleh'
+Expected: True
+Actual: True

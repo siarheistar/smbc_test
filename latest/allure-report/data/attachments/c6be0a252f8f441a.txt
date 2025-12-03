@@ -1,0 +1,3 @@
+Input 1: test#tag
+Input 2: gat#test
+Result: TRUE - These are anagrams!

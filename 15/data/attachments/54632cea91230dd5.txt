@@ -1,0 +1,3 @@
+Input 1: Dormitory
+Input 2: Dirty room
+Result: TRUE - These are anagrams!
