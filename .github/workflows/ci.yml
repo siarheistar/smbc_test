@@ -194,27 +194,37 @@ jobs:
             echo "- $d: $(find "$d" -name \"*-result.json\" | wc -l)"
           fi
         done
+        # Fail fast if any expected artifact has zero results
+        for d in artifacts/allure-results-unit artifacts/allure-results-api artifacts/allure-results-bdd-firefox artifacts/allure-results-bdd-chromium artifacts/allure-results-bdd-webkit; do
+          if [ -d "$d" ]; then
+            count=$(find "$d" -name \"*-result.json\" | wc -l)
+            if [ "$count" -eq 0 ]; then
+              echo "ERROR: No allure result files found in $d" >&2
+              exit 1
+            fi
+          fi
+        done
 
     - name: Merge all Allure results
       run: |
         rm -rf allure-results
         mkdir -p allure-results
 
-        # Copy all allure results to single directory
-        if [ -d "artifacts/allure-results-unit" ]; then
-          echo "Copying unit test results..."
-          cp -r artifacts/allure-results-unit/* allure-results/ || true
-        fi
+        expected_dirs=(
+          "artifacts/allure-results-unit"
+          "artifacts/allure-results-api"
+          "artifacts/allure-results-bdd-firefox"
+          "artifacts/allure-results-bdd-chromium"
+          "artifacts/allure-results-bdd-webkit"
+        )
 
-        if [ -d "artifacts/allure-results-api" ]; then
-          echo "Copying API test results..."
-          cp -r artifacts/allure-results-api/* allure-results/ || true
-        fi
-
-        for browser in firefox chromium webkit; do
-          if [ -d "artifacts/allure-results-bdd-$browser" ]; then
-            echo "Copying BDD test results for $browser..."
-            cp -r artifacts/allure-results-bdd-$browser/* allure-results/ || true
+        for d in "${expected_dirs[@]}"; do
+          if [ -d "$d" ]; then
+            echo "Copying results from $d ..."
+            find "$d" -type f -name "*-result.json" -exec cp {} allure-results/ \;
+            find "$d" -type f ! -name "*-result.json" -exec cp {} allure-results/ \;
+          else
+            echo "WARNING: Expected artifact directory missing: $d" >&2
           fi
         done
 
