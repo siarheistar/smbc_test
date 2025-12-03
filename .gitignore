@@ -39,6 +39,8 @@ coverage.xml
 allure-results/
 allure-report/
 allure-history/
+test-allure-results/
+test-bdd-allure/
 
 # IDEs
 .vscode/
