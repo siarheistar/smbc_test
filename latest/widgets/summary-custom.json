@@ -1,0 +1,9 @@
+{
+  "name": "summary-custom",
+  "data": {
+    "runId": "23-19910449543",
+    "totalTests": "251",
+    "coverage": "91.4%",
+    "passRate": "100.0%"
+  }
+}
