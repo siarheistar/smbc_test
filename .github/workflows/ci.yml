@@ -393,16 +393,22 @@ jobs:
         ref: gh-pages
         path: gh-pages
 
-    - name: Copy Allure history
+    - name: Prepare Allure history
       continue-on-error: true
       run: |
-        if [ -d "gh-pages/allure-history" ]; then
-          cp -r gh-pages/allure-history allure-history
-          echo "Copied Allure history"
-        else
-          echo "No Allure history found, starting fresh"
-          mkdir -p allure-history
-        fi
+        # TEMPORARY: Clear corrupted history to start fresh
+        # Remove this after one successful run with correct data
+        echo "Starting fresh - skipping old history due to data corruption"
+        mkdir -p allure-history
+
+        # TODO: After first successful run, replace above with:
+        # if [ -d "gh-pages/allure-history" ]; then
+        #   cp -r gh-pages/allure-history allure-history
+        #   echo "Copied Allure history"
+        # else
+        #   echo "No Allure history found, starting fresh"
+        #   mkdir -p allure-history
+        # fi
 
     - name: Debug before Allure generation
       run: |
