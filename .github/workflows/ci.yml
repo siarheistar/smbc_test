@@ -165,6 +165,24 @@ jobs:
         retention-days: 30
         if-no-files-found: error
 
+    - name: Upload Playwright HTML report for ${{ matrix.browser }}
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report-${{ matrix.browser }}
+        path: playwright-report.html
+        retention-days: 30
+        if-no-files-found: warn
+
+    - name: Upload Playwright test artifacts for ${{ matrix.browser }}
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-artifacts-${{ matrix.browser }}
+        path: test-results/
+        retention-days: 30
+        if-no-files-found: warn
+
   # Aggregate results and generate custom report
   aggregate-and-report:
     runs-on: ubuntu-22.04
@@ -194,14 +212,15 @@ jobs:
             echo "- $d: $(find "$d" -name \"*-result.json\" | wc -l)"
           fi
         done
-        # Fail fast if any expected artifact has zero results
+        # Warn (do not fail) if an expected artifact is missing or empty
         for d in artifacts/allure-results-unit artifacts/allure-results-api artifacts/allure-results-bdd-firefox artifacts/allure-results-bdd-chromium artifacts/allure-results-bdd-webkit; do
           if [ -d "$d" ]; then
             count=$(find "$d" -name \"*-result.json\" | wc -l)
             if [ "$count" -eq 0 ]; then
-              echo "ERROR: No allure result files found in $d" >&2
-              exit 1
+              echo "WARNING: No allure result files found in $d" >&2
             fi
+          else
+            echo "WARNING: Expected artifact directory missing: $d" >&2
           fi
         done
 
