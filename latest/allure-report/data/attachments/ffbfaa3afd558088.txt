@@ -1,0 +1,4 @@
+Input 1: Zürich
+Input 2: hcirüZ
+Expected: True
+Actual: True

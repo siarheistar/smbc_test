@@ -1,0 +1,4 @@
+Input 1: apple
+Input 2: paple
+Expected: true
+Actual: True

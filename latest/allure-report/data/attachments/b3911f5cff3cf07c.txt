@@ -1,0 +1,4 @@
+Input 1: 'multiple   spaces'
+Input 2: 'spaces   multiple'
+Expected: True
+Actual: True
