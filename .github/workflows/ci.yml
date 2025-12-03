@@ -264,6 +264,24 @@ jobs:
           fi
         done
 
+    - name: Fix BDD test IDs to be unique per browser
+      run: |
+        echo "=== Fixing BDD test IDs to prevent Allure deduplication ==="
+        chmod +x .github/scripts/fix_allure_ids.py
+
+        for browser in firefox chromium webkit; do
+          browser_dir="artifacts/allure-results-bdd-${browser}"
+          if [ -d "$browser_dir" ]; then
+            echo "Processing $browser results..."
+            python3 .github/scripts/fix_allure_ids.py "$browser_dir" "$browser"
+          else
+            echo "WARNING: Browser directory not found: $browser_dir"
+          fi
+        done
+
+        echo "BDD test ID fixing complete"
+        echo ""
+
     - name: Merge all Allure results
       run: |
         rm -rf allure-results
