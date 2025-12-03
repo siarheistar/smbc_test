@@ -187,6 +187,7 @@ jobs:
 
     - name: Merge all Allure results
       run: |
+        rm -rf allure-results
         mkdir -p allure-results
 
         # Copy all allure results to single directory
