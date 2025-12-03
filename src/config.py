@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     test_headed: bool = False
 
     # Validation Configuration
-    min_input_length: int = 0
+    min_input_length: int = 1
     max_input_length: int = 1000000
 
     # Environment
