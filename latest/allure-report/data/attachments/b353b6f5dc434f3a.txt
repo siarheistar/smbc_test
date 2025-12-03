@@ -1,0 +1,4 @@
+Input 1: Привет
+Input 2: тевирП
+Expected: True
+Actual: True

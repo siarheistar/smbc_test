@@ -1,0 +1,3 @@
+Input 1: Astronomer
+Input 2: Moon starer
+Result: TRUE - These are anagrams!
