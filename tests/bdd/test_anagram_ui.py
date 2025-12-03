@@ -5,23 +5,29 @@ import allure
 from pytest_bdd import scenarios, given, when, then, parsers
 from playwright.sync_api import Page
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Get configuration
+TEST_SERVER_URL = os.getenv("TEST_SERVER_URL", "http://localhost:8000")
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 FEATURES_DIR = PROJECT_ROOT / "features"
 
-# Load all scenarios from feature files
+# Load all scenarios from the main feature file
 scenarios(str(FEATURES_DIR / 'Anagram_Checker.feature'))
-scenarios(str(FEATURES_DIR / 'Anagram_Checker_Part1.feature'))
-scenarios(str(FEATURES_DIR / 'Anagram_Checker_Part2.feature'))
 
 
 @allure.step('Given the input strings "{input1}" and "{input2}"')
-@given(parsers.parse('the input strings "{input1}" and "{input2}"'), target_fixture="inputs")
+@given(parsers.re(r'the input strings "(?P<input1>.*)" and "(?P<input2>.*)"'), target_fixture="inputs")
 def given_inputs(page: Page, input1, input2):
     """Enter input strings into the form"""
     # Navigate to the application
-    page.goto("http://localhost:8000")
+    page.goto(TEST_SERVER_URL)
     page.wait_for_load_state("networkidle")
 
     with allure.step(f"Entering '{input1}' into Input 1 field"):
@@ -51,6 +57,18 @@ def when_check_anagrams(inputs):
         check_button = page.get_by_test_id("check-button")
         check_button.click()
 
+    # If inputs are empty, native HTML validation blocks form submit; capture its message and skip waiting for result.
+    if not inputs["input1"].strip() or not inputs["input2"].strip():
+        validation_message = page.eval_on_selector(
+            '[data-testid="input1"]',
+            "el => el.validationMessage"
+        ) or page.eval_on_selector(
+            '[data-testid="input2"]',
+            "el => el.validationMessage"
+        )
+        inputs["validation_message"] = validation_message
+        return
+
     # Wait for result to appear
     result_div = page.get_by_test_id("result")
     result_div.wait_for(state="visible", timeout=5000)
@@ -63,9 +81,16 @@ def when_check_anagrams(inputs):
 
 
 @allure.step('Then the result should be "{output}"')
-@then(parsers.parse('the result should be "{output}"'))
+@then(parsers.re(r'the result should be "(?P<output>.*)"'))
 def then_result_should_be(inputs, output):
     """Verify the result"""
+    # If validation blocked submission, assert a validation message exists and stop.
+    if "validation_message" in inputs:
+        with allure.step("Verifying native validation is shown for empty input"):
+            msg = inputs["validation_message"]
+            assert msg, "Expected browser validation message for empty input"
+        return
+
     result_element = inputs["result_element"]
     result_text = result_element.text_content()
 

@@ -4,86 +4,100 @@ FastAPI application for Anagram Checker
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.openapi.docs import get_redoc_html
 from src.anagram_checker import create_anagram_checker
 from src.models import AnagramRequest, AnagramResponse
+from src.config import settings
 
 app = FastAPI(
-    title="Anagram Checker API",
-    description="API to check if two strings are anagrams",
-    version="1.0.0"
+    title=settings.app_name,
+    description=settings.app_description,
+    version=settings.app_version,
+    docs_url=settings.docs_url,
+    redoc_url=None  # We'll create custom ReDoc endpoint
 )
 
 # CORS middleware for web UI access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=settings.cors_allow_credentials,
+    allow_methods=[settings.cors_allow_methods],
+    allow_headers=[settings.cors_allow_headers],
 )
 
 # Create anagram checker instance
 checker = create_anagram_checker()
 
 
+@app.get(settings.redoc_url, include_in_schema=False)
+async def redoc_html():
+    """Custom ReDoc documentation with working CDN"""
+    return get_redoc_html(
+        openapi_url=app.openapi_url,
+        title=f"{settings.app_name} - ReDoc",
+        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js",
+    )
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Serve the web UI"""
-    return """
+    return f"""
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Anagram Checker</title>
+        <title>{settings.ui_title}</title>
         <style>
-            body {
+            body {{
                 font-family: Arial, sans-serif;
                 max-width: 800px;
                 margin: 50px auto;
                 padding: 20px;
                 background-color: #f5f5f5;
-            }
-            .container {
+            }}
+            .container {{
                 background-color: white;
                 padding: 30px;
                 border-radius: 10px;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            }
-            h1 {
+            }}
+            h1 {{
                 color: #333;
                 text-align: center;
-            }
-            .form-group {
+            }}
+            .form-group {{
                 margin: 20px 0;
-            }
-            label {
+            }}
+            label {{
                 display: block;
                 margin-bottom: 5px;
                 font-weight: bold;
                 color: #555;
-            }
-            input[type="text"] {
+            }}
+            input[type="text"] {{
                 width: 100%;
                 padding: 10px;
                 border: 1px solid #ddd;
                 border-radius: 5px;
                 font-size: 16px;
                 box-sizing: border-box;
-            }
-            button {
+            }}
+            button {{
                 width: 100%;
                 padding: 12px;
-                background-color: #4CAF50;
+                background-color: {settings.ui_primary_color};
                 color: white;
                 border: none;
                 border-radius: 5px;
                 font-size: 16px;
                 cursor: pointer;
                 margin-top: 10px;
-            }
-            button:hover {
-                background-color: #45a049;
-            }
-            #result {
+            }}
+            button:hover {{
+                background-color: {settings.ui_primary_color_hover};
+            }}
+            #result {{
                 margin-top: 20px;
                 padding: 15px;
                 border-radius: 5px;
@@ -91,31 +105,31 @@ async def root():
                 font-size: 18px;
                 font-weight: bold;
                 display: none;
-            }
-            .result-true {
+            }}
+            .result-true {{
                 background-color: #d4edda;
                 color: #155724;
                 border: 1px solid #c3e6cb;
-            }
-            .result-false {
+            }}
+            .result-false {{
                 background-color: #f8d7da;
                 color: #721c24;
                 border: 1px solid #f5c6cb;
-            }
-            .example {
+            }}
+            .example {{
                 background-color: #e7f3ff;
                 padding: 15px;
                 border-radius: 5px;
                 margin-top: 20px;
-            }
-            .example h3 {
+            }}
+            .example h3 {{
                 margin-top: 0;
-            }
+            }}
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>Anagram Checker</h1>
+            <h1>{settings.ui_title}</h1>
             <p style="text-align: center; color: #666;">
                 Check if two strings are anagrams of each other
             </p>
@@ -156,22 +170,22 @@ async def root():
         <script>
             // Set current year in footer
             document.getElementById('copyright').textContent =
-              `\u00A9 ${new Date().getFullYear()} Siarhei Staravoitau`;
+              `\\u00A9 ${{new Date().getFullYear()}} {settings.copyright_name}`;
 
-            document.getElementById('anagramForm').addEventListener('submit', async (e) => {
+            document.getElementById('anagramForm').addEventListener('submit', async (e) => {{
                 e.preventDefault();
 
                 const input1 = document.getElementById('input1').value;
                 const input2 = document.getElementById('input2').value;
 
-                try {
-                    const response = await fetch('/api/check', {
+                try {{
+                    const response = await fetch('{settings.api_check_endpoint}', {{
                         method: 'POST',
-                        headers: {
+                        headers: {{
                             'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ input1, input2 })
-                    });
+                        }},
+                        body: JSON.stringify({{ input1, input2 }})
+                    }});
 
                     const data = await response.json();
                     const resultDiv = document.getElementById('result');
@@ -179,17 +193,17 @@ async def root():
                     resultDiv.textContent = data.result ? 'TRUE - These are anagrams!' : 'FALSE - These are not anagrams';
                     resultDiv.className = data.result ? 'result-true' : 'result-false';
                     resultDiv.style.display = 'block';
-                } catch (error) {
+                }} catch (error) {{
                     alert('Error checking anagram: ' + error.message);
-                }
-            });
+                }}
+            }});
         </script>
     </body>
     </html>
     """
 
 
-@app.post("/api/check", response_model=AnagramResponse)
+@app.post(settings.api_check_endpoint, response_model=AnagramResponse)
 async def check_anagram(request: AnagramRequest):
     """
     Check if two strings are anagrams
@@ -211,7 +225,11 @@ async def check_anagram(request: AnagramRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/health")
+@app.get(settings.health_endpoint)
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "environment": settings.environment,
+        "version": settings.app_version
+    }

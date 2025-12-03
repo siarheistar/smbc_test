@@ -1,4 +1,4 @@
-.PHONY: help install setup run test test-unit test-api test-bdd test-parallel clean coverage report
+.PHONY: help install setup run check-venv test test-unit test-api test-bdd test-parallel clean coverage report lint
 
 help:
 	@echo "Anagram Checker - Available Commands"
@@ -14,6 +14,7 @@ help:
 	@echo "make coverage     - Generate coverage report"
 	@echo "make report       - Generate and open Allure report"
 	@echo "make clean        - Clean test artifacts"
+	@echo "make lint         - Lint codebase"
 
 install:
 	pip install -r requirements.txt
@@ -24,23 +25,26 @@ setup:
 	. venv/bin/activate && pip install -r requirements.txt
 	. venv/bin/activate && playwright install
 
+check-venv:
+	@test -x venv/bin/pytest || (echo "Virtualenv not found. Run 'make setup' first." && exit 1)
+
 run:
 	uvicorn src.app:app --reload --host 0.0.0.0 --port 8000
 
-test:
-	pytest tests/ -v --browser firefox --cov=src --cov-report=html --cov-report=term-missing --alluredir=allure-results
+test: check-venv
+	. venv/bin/activate && pytest tests/ -v --browser firefox --cov=src --cov-report=html --cov-report=term-missing --alluredir=allure-results
 
-test-unit:
-	pytest tests/unit/ -v -m unit --cov=src --cov-report=html --alluredir=allure-results
+test-unit: check-venv
+	. venv/bin/activate && pytest tests/unit/ -v -m unit --cov=src --cov-report=html --alluredir=allure-results
 
-test-api:
-	pytest tests/api/ -v -m api --alluredir=allure-results
+test-api: check-venv
+	. venv/bin/activate && pytest tests/api/ -v -m api --alluredir=allure-results
 
-test-bdd:
-	pytest tests/bdd/ -v --browser firefox --headed --alluredir=allure-results
+test-bdd: check-venv
+	. venv/bin/activate && pytest tests/bdd/ -v --browser firefox --headed --alluredir=allure-results
 
-test-parallel:
-	pytest tests/bdd/test_anagram_ui.py -v -n 2 --browser firefox --alluredir=allure-results
+test-parallel: check-venv
+	. venv/bin/activate && pytest tests/bdd/test_anagram_ui.py -v -n 2 --browser firefox --alluredir=allure-results
 
 coverage:
 	pytest tests/unit/ --cov=src --cov-report=html --cov-report=term
@@ -54,3 +58,6 @@ clean:
 	rm -rf allure-results allure-report htmlcov .pytest_cache .coverage
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
+
+lint:
+	. venv/bin/activate && ruff check .

@@ -57,3 +57,7 @@ Thumbs.db
 # Playwright
 test-results/
 playwright/.cache/
+.env
+playwright-report.html
+.playwright-screenshots/
+test-results/

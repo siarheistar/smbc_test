@@ -10,3 +10,6 @@ httpx==0.25.2
 allure-pytest==2.13.2
 requests==2.31.0
 pytest-xdist==3.5.0
+pydantic-settings==2.1.0
+python-dotenv==1.0.0
+pytest-html==4.1.1
