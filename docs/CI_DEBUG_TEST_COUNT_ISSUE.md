@@ -312,6 +312,71 @@ allure open allure-report
 
 ## Status
 
-🔍 **INVESTIGATING** - Debugging changes committed, waiting for next CI run to analyze logs.
+🔧 **FIXING** - Root cause identified: `actions/download-artifact@v4` behavior issue
 
-Once the root cause is identified from the logs, this document will be updated with the fix.
+### Latest Results (Run after debugging added)
+
+**Actual count: 57 tests** (should be 251)
+- tests.api: 22 (should be 79) - Missing 57 tests
+- tests.bdd: 16 (should be 153) - Missing 137 tests
+- tests.unit: 19 (correct) ✓
+
+### Root Cause Identified
+
+**Problem:** `actions/download-artifact@v4` without explicit `name` parameter downloads ALL artifacts but may create nested directory structures or have file conflicts during extraction.
+
+**Evidence:** When downloading with just `path: artifacts`, the action downloads everything but the structure may be:
+```
+artifacts/
+├── allure-results-unit/
+│   └── allure-results-unit/  ← NESTED or other structure issue
+│       └── files
+```
+
+Or worse, files with the same name from different artifacts may overwrite each other during download.
+
+### Fix Applied
+
+Changed from single download-all to explicit individual downloads:
+
+**Before:**
+```yaml
+- name: Download all test results
+  uses: actions/download-artifact@v4
+  with:
+    path: artifacts
+```
+
+**After:**
+```yaml
+- name: Download unit test results
+  uses: actions/download-artifact@v4
+  with:
+    name: allure-results-unit
+    path: artifacts/allure-results-unit
+
+- name: Download API test results
+  uses: actions/download-artifact@v4
+  with:
+    name: allure-results-api
+    path: artifacts/allure-results-api
+
+# ... and so on for each artifact
+```
+
+**Benefits:**
+1. Explicit path control - no nested directories
+2. No file name conflicts between artifacts
+3. Clear separation of each test type's results
+4. Easier to debug which artifact failed to download
+
+### Next CI Run Should Show
+
+With the explicit download paths:
+- artifacts/allure-results-unit: 19 result files
+- artifacts/allure-results-api: 79 result files
+- artifacts/allure-results-bdd-firefox: 51 result files
+- artifacts/allure-results-bdd-chromium: 51 result files
+- artifacts/allure-results-bdd-webkit: 51 result files
+- **Total merged: 251 result files**
+- **Allure report: 251 tests**
