@@ -1,0 +1,3 @@
+Input 1: a
+Input 2: b
+Result: FALSE - These are not anagrams
