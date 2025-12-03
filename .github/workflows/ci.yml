@@ -44,6 +44,7 @@ jobs:
         name: allure-results-unit
         path: allure-results-unit
         retention-days: 30
+        if-no-files-found: error
 
     - name: Upload coverage report
       if: always()
@@ -54,6 +55,7 @@ jobs:
           htmlcov
           coverage.xml
         retention-days: 30
+        if-no-files-found: error
 
   # API Tests - Parallel execution
   api-tests:
@@ -103,6 +105,7 @@ jobs:
         name: allure-results-api
         path: allure-results-api
         retention-days: 30
+        if-no-files-found: error
 
   # BDD Tests - Docker Matrix with multiple browsers
   bdd-tests:
@@ -160,6 +163,7 @@ jobs:
         name: allure-results-bdd-${{ matrix.browser }}
         path: allure-results-bdd-${{ matrix.browser }}
         retention-days: 30
+        if-no-files-found: error
 
   # Aggregate results and generate custom report
   aggregate-and-report:
@@ -183,7 +187,13 @@ jobs:
     - name: List downloaded artifacts
       run: |
         echo "Downloaded artifacts:"
-        ls -laR artifacts/
+        ls -la artifacts/
+        echo "Per-artifact result counts:"
+        for d in artifacts/*; do
+          if [ -d "$d" ]; then
+            echo "- $d: $(find "$d" -name \"*-result.json\" | wc -l)"
+          fi
+        done
 
     - name: Merge all Allure results
       run: |
@@ -210,6 +220,7 @@ jobs:
 
         echo "Merged allure results:"
         ls -la allure-results/
+        echo "Total merged results: $(find allure-results -name \"*-result.json\" | wc -l)"
 
     - name: Calculate test statistics
       id: stats
