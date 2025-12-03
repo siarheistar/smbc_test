@@ -6,6 +6,7 @@ import subprocess
 import time
 import requests
 from playwright.sync_api import sync_playwright
+import allure
 
 
 # Global variable to store server process
@@ -18,6 +19,27 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "api: API tests")
     config.addinivalue_line("markers", "bdd: BDD tests")
     config.addinivalue_line("markers", "ui: UI tests")
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """
+    Add browser name to Allure results for BDD tests.
+    This ensures each browser run has unique test IDs in Allure reports.
+    """
+    outcome = yield
+    report = outcome.get_result()
+
+    # Only process for BDD tests
+    if "bdd" in item.keywords or "tests/bdd" in str(item.fspath):
+        # Get browser name from pytest-playwright fixture
+        if hasattr(item, 'callspec') and 'browser_name' in item.callspec.params:
+            browser = item.callspec.params['browser_name']
+            # Add browser as parameter in Allure
+            if hasattr(report, 'nodeid'):
+                allure.dynamic.parameter("Browser", browser)
+                # Also modify the test name to include browser
+                allure.dynamic.title(f"{item.originalname or item.name} [{browser}]")
 
 
 @pytest.fixture(scope="session", autouse=True)

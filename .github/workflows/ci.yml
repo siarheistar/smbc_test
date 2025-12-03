@@ -304,13 +304,45 @@ jobs:
 
             if [ "$result_count" -gt 0 ]; then
               echo "  Copying ${result_count} result files..."
-              find "$artifact_dir" -type f -name "*-result.json" -exec cp -v {} allure-results/ \;
 
-              # Copy non-result files (containers, attachments, etc.)
-              find "$artifact_dir" -type f ! -name "*-result.json" -exec cp -v {} allure-results/ \;
+              # Determine browser suffix for unique naming
+              browser_suffix=""
+              if [[ "$artifact_name" == *"-firefox" ]]; then
+                browser_suffix="-firefox"
+              elif [[ "$artifact_name" == *"-chromium" ]]; then
+                browser_suffix="-chromium"
+              elif [[ "$artifact_name" == *"-webkit" ]]; then
+                browser_suffix="-webkit"
+              fi
+
+              # Copy files with unique names to prevent overwrites
+              find "$artifact_dir" -type f -name "*-result.json" | while read -r file; do
+                filename=$(basename "$file")
+                if [ -n "$browser_suffix" ]; then
+                  # Add browser suffix before extension
+                  new_filename="${filename%.json}${browser_suffix}.json"
+                else
+                  new_filename="$filename"
+                fi
+                cp -v "$file" "allure-results/$new_filename"
+              done
+
+              # Copy non-result files with unique names
+              find "$artifact_dir" -type f ! -name "*-result.json" | while read -r file; do
+                filename=$(basename "$file")
+                if [ -n "$browser_suffix" ]; then
+                  # Add browser suffix before extension for all files
+                  extension="${filename##*.}"
+                  base="${filename%.*}"
+                  new_filename="${base}${browser_suffix}.${extension}"
+                else
+                  new_filename="$filename"
+                fi
+                cp -v "$file" "allure-results/$new_filename"
+              done
 
               total_copied=$((total_copied + result_count))
-              echo "  ✓ Copied ${result_count} test results"
+              echo "  ✓ Copied ${result_count} test results with unique names"
             else
               echo "  ✗ No result files found!"
             fi
