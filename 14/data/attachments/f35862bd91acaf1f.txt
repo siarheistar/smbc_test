@@ -1,0 +1,3 @@
+Input 1: abcdefghijklmnopqrst
+Input 2: tsrqponmlkjihgfedcba
+Result: TRUE - These are anagrams!
