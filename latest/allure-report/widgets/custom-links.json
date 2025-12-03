@@ -8,6 +8,18 @@
     {
       "name": "Test Reports Index",
       "url": "../index.html"
+    },
+    {
+      "name": "Playwright Report (Firefox)",
+      "url": "../playwright-reports/firefox.html"
+    },
+    {
+      "name": "Playwright Report (Chromium)",
+      "url": "../playwright-reports/chromium.html"
+    },
+    {
+      "name": "Playwright Report (WebKit)",
+      "url": "../playwright-reports/webkit.html"
     }
   ]
 }
