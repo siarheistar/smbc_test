@@ -1,0 +1,632 @@
+{
+  "info": {
+    "name": "Anagram Checker API",
+    "description": "Comprehensive API tests for the Anagram Checker application",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health & Documentation",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has healthy status\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('healthy');",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains environment\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('environment');",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains version\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('version');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Root Endpoint",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Content-Type is HTML\", function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains Anagram Checker\", function () {",
+                  "    pm.expect(pm.response.text()).to.include('Anagram Checker');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "OpenAPI JSON Schema",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains OpenAPI version\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('openapi');",
+                  "});",
+                  "",
+                  "pm.test(\"API title is correct\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.info.title).to.eql('Anagram Checker API');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/openapi.json",
+              "host": ["{{base_url}}"],
+              "path": ["openapi.json"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Valid Anagrams",
+      "item": [
+        {
+          "name": "Check Anagrams - listen/silent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is acceptable\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"listen\",\n  \"input2\": \"silent\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        },
+        {
+          "name": "Check Anagrams - A gentleman/Elegant Man",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"A gentleman\",\n  \"input2\": \"Elegant Man\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        },
+        {
+          "name": "Check Anagrams - school master/the classroom",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"school master\",\n  \"input2\": \"the classroom\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Non-Anagrams",
+      "item": [
+        {
+          "name": "Check Non-Anagrams - hello/world",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is false\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"hello\",\n  \"input2\": \"world\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        },
+        {
+          "name": "Check Non-Anagrams - rat/car",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is false\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.false;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"rat\",\n  \"input2\": \"car\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validation Tests",
+      "item": [
+        {
+          "name": "Empty Input Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains validation error\", function () {",
+                  "    pm.expect(pm.response.text()).to.include('at least 2 characters');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"\",\n  \"input2\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        },
+        {
+          "name": "Missing Field Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        },
+        {
+          "name": "Single Character Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains min length error\", function () {",
+                  "    pm.expect(pm.response.text()).to.include('at least 2 characters');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"a\",\n  \"input2\": \"b\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Special Characters",
+      "item": [
+        {
+          "name": "Anagrams with Special Characters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"hello!\",\n  \"input2\": \"!olleh\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        },
+        {
+          "name": "Anagrams with Numbers and Symbols",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"test@123\",\n  \"input2\": \"123@test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unicode Tests",
+      "item": [
+        {
+          "name": "Anagrams with Accented Characters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"café\",\n  \"input2\": \"éfac\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        },
+        {
+          "name": "Anagrams with Emojis",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"🎉🎊\",\n  \"input2\": \"🎊🎉\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Case Sensitivity",
+      "item": [
+        {
+          "name": "Case Insensitive Anagrams",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is true (case insensitive)\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"LISTEN\",\n  \"input2\": \"silent\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        },
+        {
+          "name": "Mixed Case Anagrams",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Result is true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.result).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"input1\": \"AbC\",\n  \"input2\": \"CbA\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "check"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}
