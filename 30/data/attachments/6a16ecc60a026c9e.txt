@@ -1,0 +1,4 @@
+Input 1: test#tag
+Input 2: gat#test
+Expected: True
+Actual: True
