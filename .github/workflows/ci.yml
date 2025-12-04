@@ -151,10 +151,10 @@ jobs:
     - name: Run Newman tests
       run: |
         newman run tests/newman/anagram-api.postman_collection.json \
-          -e tests/newman/environment.json \
           --reporters cli,htmlextra,allure \
           --reporter-htmlextra-export newman-report.html \
-          --reporter-allure-export allure-results-newman
+          --reporter-allure-export allure-results-newman \
+          --bail
 
     - name: Upload Newman test results
       if: always()
