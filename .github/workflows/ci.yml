@@ -123,7 +123,7 @@ jobs:
 
     - name: Install Newman
       run: |
-        npm install -g newman newman-reporter-htmlextra newman-reporter-allure
+        npm install -g newman newman-reporter-htmlextra
 
     - name: Install Python dependencies
       run: |
@@ -151,19 +151,9 @@ jobs:
     - name: Run Newman tests
       run: |
         newman run tests/newman/anagram-api.postman_collection.json \
-          --reporters cli,htmlextra,allure \
+          --reporters cli,htmlextra \
           --reporter-htmlextra-export newman-report.html \
-          --reporter-allure-export allure-results-newman \
           --bail
-
-    - name: Upload Newman test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: allure-results-newman
-        path: allure-results-newman
-        retention-days: 30
-        if-no-files-found: error
 
     - name: Upload Newman HTML report
       if: always()
@@ -279,13 +269,6 @@ jobs:
         name: allure-results-api
         path: artifacts/allure-results-api
 
-    - name: Download Newman test results
-      uses: actions/download-artifact@v4
-      continue-on-error: true
-      with:
-        name: allure-results-newman
-        path: artifacts/allure-results-newman
-
     - name: Download Newman HTML report
       uses: actions/download-artifact@v4
       continue-on-error: true
@@ -339,7 +322,7 @@ jobs:
             echo "- $d: $(find "$d" -name \"*-result.json\" | wc -l)"
           fi
         done
-        for d in artifacts/allure-results-unit artifacts/allure-results-api artifacts/allure-results-newman artifacts/allure-results-bdd-firefox artifacts/allure-results-bdd-chromium artifacts/allure-results-bdd-webkit; do
+        for d in artifacts/allure-results-unit artifacts/allure-results-api artifacts/allure-results-bdd-firefox artifacts/allure-results-bdd-chromium artifacts/allure-results-bdd-webkit; do
           if [ -d "$d" ]; then
             count=$(find "$d" -name \"*-result.json\" | wc -l)
             if [ "$count" -eq 0 ]; then
@@ -374,7 +357,7 @@ jobs:
         ls -la artifacts/
         echo ""
         echo "=== Checking each artifact directory ==="
-        for artifact_name in allure-results-unit allure-results-api allure-results-newman allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
+        for artifact_name in allure-results-unit allure-results-api allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
           echo "Checking artifacts/${artifact_name}..."
           if [ -d "artifacts/${artifact_name}" ]; then
             echo "  ✓ Directory exists"
@@ -389,7 +372,7 @@ jobs:
         done
         echo "=== Merging results ==="
         total_copied=0
-        for artifact_name in allure-results-unit allure-results-api allure-results-newman allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
+        for artifact_name in allure-results-unit allure-results-api allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
           artifact_dir="artifacts/${artifact_name}"
           if [ -d "$artifact_dir" ]; then
             echo "Copying from ${artifact_dir}..."
