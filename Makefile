@@ -32,7 +32,8 @@ run:
 	uvicorn src.app:app --reload --host 0.0.0.0 --port 8000
 
 test: check-venv
-	. venv/bin/activate && pytest tests/ -v --browser firefox --cov=src --cov-report=html --cov-report=term-missing --alluredir=allure-results
+	mkdir -p reports
+	. venv/bin/activate && pytest tests/ -v --browser firefox --cov=src --cov-report=html --cov-report=term-missing --alluredir=allure-results --cucumberjson=reports/cucumber.json --html=reports/pytest-bdd.html --self-contained-html
 
 test-unit: check-venv
 	. venv/bin/activate && pytest tests/unit/ -v -m unit --cov=src --cov-report=html --alluredir=allure-results
@@ -41,10 +42,12 @@ test-api: check-venv
 	. venv/bin/activate && pytest tests/api/ -v -m api --alluredir=allure-results
 
 test-bdd: check-venv
-	. venv/bin/activate && pytest tests/bdd/ -v --browser firefox --headed --alluredir=allure-results
+	mkdir -p reports
+	. venv/bin/activate && pytest tests/bdd/ -v -n 5 --browser firefox --headed --alluredir=allure-results --cucumberjson=reports/cucumber-bdd.json --html=reports/pytest-bdd-ui.html --self-contained-html
 
 test-parallel: check-venv
-	. venv/bin/activate && pytest tests/bdd/test_anagram_ui.py -v -n 2 --browser firefox --alluredir=allure-results
+	mkdir -p reports
+	. venv/bin/activate && pytest tests/bdd/test_anagram_ui.py -v -n 5 --browser firefox --alluredir=allure-results --cucumberjson=reports/cucumber-bdd-parallel.json --html=reports/pytest-bdd-parallel.html --self-contained-html
 
 coverage:
 	pytest tests/unit/ --cov=src --cov-report=html --cov-report=term

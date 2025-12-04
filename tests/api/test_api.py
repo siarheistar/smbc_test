@@ -5,6 +5,7 @@ import pytest
 import allure
 from fastapi.testclient import TestClient
 from src.app import app
+from src.config import settings
 
 
 @pytest.fixture
@@ -140,6 +141,7 @@ class TestAnagramAPI:
 
         # Empty strings should fail validation
         assert response.status_code == 422
+        assert "at least 2 characters" in response.text
 
     @allure.title("Test API with missing fields")
     def test_api_missing_fields(self, client):
@@ -284,7 +286,7 @@ class TestAnagramAPI:
         ("abc123", "321cba", True),  # Mixed alphanumeric
         ("1000", "0001", True),  # Leading zeros
         ("123", "124", False),  # Different numbers
-        ("0", "0", True),  # Single zero
+        ("00", "00", True),  # Min length numeric
         ("999999999", "999999999", True),  # Large numbers
     ])
     def test_api_numeric_strings(self, client, input1, input2, expected):
@@ -302,26 +304,22 @@ class TestAnagramAPI:
 
     # ==================== Edge Case Tests ====================
     
-    @allure.title("Test API with single character")
-    @pytest.mark.parametrize("input1,input2,expected", [
-        ("a", "a", True),  # Same single char
-        ("a", "b", False),  # Different single char
-        ("A", "a", True),  # Case insensitive single char
-        ("1", "1", True),  # Single digit
-        ("!", "!", True),  # Single special char
+    @allure.title("Test API rejects single-character inputs")
+    @pytest.mark.parametrize("input1,input2", [
+        ("a", "a"),
+        ("a", "b"),
+        ("A", "a"),
+        ("1", "1"),
+        ("!", "!"),
     ])
-    def test_api_single_character(self, client, input1, input2, expected):
-        """Test API with single character inputs"""
-        with allure.step(f"POST /api/check with single chars: '{input1}' and '{input2}'"):
-            response = client.post(
-                "/api/check",
-                json={"input1": input1, "input2": input2}
-            )
-
-        with allure.step("Verify single character handling"):
-            assert response.status_code == 200
-            data = response.json()
-            assert data["result"] == expected
+    def test_api_single_character(self, client, input1, input2):
+        """Single character inputs should fail min-length validation"""
+        response = client.post(
+            "/api/check",
+            json={"input1": input1, "input2": input2}
+        )
+        assert response.status_code == 422
+        assert "at least 2 characters" in response.text
 
     @allure.title("Test API with very long strings (1K)")
     def test_api_long_strings_1k(self, client):
@@ -358,13 +356,12 @@ class TestAnagramAPI:
                 json={"input1": very_long_str1, "input2": very_long_str2}
             )
 
-        with allure.step("Verify very long string handling"):
-            assert response.status_code == 200
-            data = response.json()
-            assert data["result"] == True
+        with allure.step("Verify very long string handling (should fail max length)"):
+            assert response.status_code == 422
+            assert "at most" in response.text
 
         allure.attach(
-            f"String length: {len(very_long_str1)} characters\nResult: {data['result']}",
+            f"String length: {len(very_long_str1)} characters\nStatus: {response.status_code}\nBody: {response.text}",
             name="10K String Test",
             attachment_type=allure.attachment_type.TEXT
         )
@@ -394,6 +391,24 @@ class TestAnagramAPI:
 
         with allure.step("Verify content type validation"):
             assert response.status_code == 422
+            assert "type" in response.text
+
+    @allure.title("Test API enforces min input length")
+    def test_api_min_length_validation(self, client):
+        """Inputs shorter than configured min length should be rejected"""
+        payload = {"input1": "a", "input2": "a"}
+        response = client.post("/api/check", json=payload)
+        assert response.status_code == 422
+        assert "at least 2 characters" in response.text
+
+    @allure.title("Test API enforces max input length")
+    def test_api_max_length_validation(self, client):
+        """Inputs longer than configured max length should be rejected"""
+        long_str = "a" * (settings.max_input_length + 1)
+        payload = {"input1": long_str, "input2": long_str}
+        response = client.post("/api/check", json=payload)
+        assert response.status_code == 422
+        assert "at most" in response.text
 
     # ==================== Repeated Characters Tests ====================
     

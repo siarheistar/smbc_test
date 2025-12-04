@@ -16,8 +16,8 @@ NC='\033[0m' # No Color
 
 # Clean previous results
 echo -e "\n${YELLOW}Cleaning previous test results...${NC}"
-rm -rf allure-results allure-report htmlcov .pytest_cache
-mkdir -p allure-results
+rm -rf allure-results allure-report htmlcov .pytest_cache reports
+mkdir -p allure-results reports
 
 # Install Playwright browsers if not installed
 echo -e "\n${YELLOW}Installing Playwright browsers...${NC}"
@@ -33,11 +33,11 @@ pytest tests/api/ -v -m api --alluredir=allure-results
 
 # Run BDD Tests (UI)
 echo -e "\n${GREEN}Running BDD UI Tests with Firefox...${NC}"
-pytest tests/bdd/ -v --browser firefox --alluredir=allure-results
+pytest tests/bdd/ -v --browser firefox --alluredir=allure-results --cucumberjson=reports/cucumber-bdd.json --html=reports/pytest-bdd-ui.html --self-contained-html
 
 # Run parallel test execution (Part 1 and Part 2 features)
 echo -e "\n${GREEN}Running BDD Tests in Parallel with Firefox...${NC}"
-pytest tests/bdd/test_anagram_ui.py -v -n 2 --browser firefox --alluredir=allure-results
+pytest tests/bdd/test_anagram_ui.py -v -n 2 --browser firefox --alluredir=allure-results --cucumberjson=reports/cucumber-bdd-parallel.json --html=reports/pytest-bdd-parallel.html --self-contained-html
 
 # Generate Allure Report
 echo -e "\n${YELLOW}Generating Allure Report...${NC}"

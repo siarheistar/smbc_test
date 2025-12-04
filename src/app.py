@@ -66,6 +66,12 @@ async def root():
                 color: #333;
                 text-align: center;
             }}
+            .meta {{
+                text-align: center;
+                color: #666;
+                font-size: 14px;
+                margin-top: -10px;
+            }}
             .form-group {{
                 margin: 20px 0;
             }}
@@ -106,6 +112,17 @@ async def root():
                 font-weight: bold;
                 display: none;
             }}
+            #error {{
+                margin-top: 20px;
+                padding: 15px;
+                border-radius: 5px;
+                text-align: center;
+                font-size: 16px;
+                display: none;
+                background-color: #fff3cd;
+                color: #856404;
+                border: 1px solid #ffeeba;
+            }}
             .result-true {{
                 background-color: #d4edda;
                 color: #155724;
@@ -133,6 +150,7 @@ async def root():
             <p style="text-align: center; color: #666;">
                 Check if two strings are anagrams of each other
             </p>
+            <p class="meta">Minimum length: {settings.min_input_length} characters · Maximum length: {settings.max_input_length} characters</p>
 
             <form id="anagramForm">
                 <div class="form-group">
@@ -150,6 +168,7 @@ async def root():
                 <button type="submit" data-testid="check-button">Check Anagram</button>
             </form>
 
+            <div id="error" data-testid="error"></div>
             <div id="result" data-testid="result"></div>
 
             <div class="example">
@@ -177,6 +196,30 @@ async def root():
 
                 const input1 = document.getElementById('input1').value;
                 const input2 = document.getElementById('input2').value;
+                const errorDiv = document.getElementById('error');
+                const resultDiv = document.getElementById('result');
+
+                // reset messages
+                errorDiv.style.display = 'none';
+                resultDiv.style.display = 'none';
+
+                // client-side validation for min/max length
+                const minLen = {settings.min_input_length};
+                const maxLen = {settings.max_input_length};
+                const len1 = input1.trim().length;
+                const len2 = input2.trim().length;
+
+                if (len1 < minLen || len2 < minLen) {{
+                    errorDiv.textContent = `Inputs must be at least ${{minLen}} characters long.`;
+                    errorDiv.style.display = 'block';
+                    return;
+                }}
+
+                if (len1 > maxLen || len2 > maxLen) {{
+                    errorDiv.textContent = `Inputs must be no more than ${{maxLen}} characters long.`;
+                    errorDiv.style.display = 'block';
+                    return;
+                }}
 
                 try {{
                     const response = await fetch('{settings.api_check_endpoint}', {{
@@ -188,13 +231,20 @@ async def root():
                     }});
 
                     const data = await response.json();
-                    const resultDiv = document.getElementById('result');
+
+                    if (!response.ok) {{
+                        const detail = data?.detail ?? 'Validation error';
+                        errorDiv.textContent = Array.isArray(detail) ? detail.map(d => d.msg).join('; ') : detail;
+                        errorDiv.style.display = 'block';
+                        return;
+                    }}
 
                     resultDiv.textContent = data.result ? 'TRUE - These are anagrams!' : 'FALSE - These are not anagrams';
                     resultDiv.className = data.result ? 'result-true' : 'result-false';
                     resultDiv.style.display = 'block';
                 }} catch (error) {{
-                    alert('Error checking anagram: ' + error.message);
+                    errorDiv.textContent = 'Error checking anagram: ' + error.message;
+                    errorDiv.style.display = 'block';
                 }}
             }});
         </script>

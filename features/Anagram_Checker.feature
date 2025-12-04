@@ -21,21 +21,26 @@ Feature: Anagram Checker
 
 
 
-    Examples: Edge Cases - Single Characters
+    Examples: Edge Cases - Short Strings
       | input1 | input2 | output |
-      | a      | a      | true   |
-      | a      | b      | false  |
-      | A      | a      | true   |
-      | 1      | 1      | true   |
-      | !      | !      | true   |
-      |        |        | false  |
+      | aa     | aa     | true   |
+      | ab     | ba     | true   |
+      | Aa     | aA     | true   |
+      | 11     | 11     | true   |
+      | !!     | !!     | true   |
+      | a      | a      | error  |
+      | a      | b      | error  |
+      | A      | a      | error  |
+      | 1      | 1      | error  |
+      | !      | !      | error  |
+
 
     Examples: Edge Cases - Empty and Whitespace
-      | input1     | input2     | output |
-      |            |            | true   |
-      | abc        | abc        | true   |
-      |   hello   | olleh      | true   |
-      | a b c      | cba        | true   |
+      | input1    | input2   | output |
+      |           |          | error  |
+      | abc       | abc      | true   |
+      |   hello   | olleh    | true   |
+      | a b c     | cba      | true   |
 
     Examples: Special Characters
       | input1       | input2       | output |
@@ -60,7 +65,7 @@ Feature: Anagram Checker
       | abc123    | 321cba    | true   |
       | 1000      | 0001      | true   |
       | 123       | 124       | false  |
-      | 0         | 0         | true   |
+      | 0         | 0         | error  |
 
     Examples: Case Sensitivity
       | input1  | input2  | output |

@@ -9,6 +9,7 @@ from src.anagram_checker import (
     AnagramChecker,
     create_anagram_checker
 )
+from src.config import settings
 
 
 @allure.feature('Anagram Checker')
@@ -127,3 +128,18 @@ class TestAnagramChecker:
         checker = create_anagram_checker()
         assert isinstance(checker, AnagramChecker)
         assert checker.check("listen", "silent") is True
+
+
+@allure.feature('Configuration')
+@allure.story('Input length limits')
+@pytest.mark.unit
+class TestConfigValidationBounds:
+    """Verify validation bounds are set as expected"""
+
+    def test_min_length_config(self):
+        """Minimum input length should be at least 2 characters"""
+        assert settings.min_input_length == 2
+
+    def test_max_length_config(self):
+        """Maximum input length should be capped to prevent huge payloads"""
+        assert settings.max_input_length == 1000
