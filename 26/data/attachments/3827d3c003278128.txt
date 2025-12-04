@@ -1,0 +1,4 @@
+Input 1: naïve
+Input 2: veïan
+Expected: True
+Actual: True
