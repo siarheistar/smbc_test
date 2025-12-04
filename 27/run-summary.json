@@ -1,0 +1,12 @@
+{
+  "runId": "27-19926350153",
+  "runNumber": 27,
+  "timestamp": "2025-12-04T10:53:54Z",
+  "totalTests": 267,
+  "passed": 267,
+  "failed": 0,
+  "passRate": 100.0,
+  "coverage": "91.4",
+  "allureUrl": "./27/index.html",
+  "coverageUrl": "./htmlcov/index.html"
+}

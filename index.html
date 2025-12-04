@@ -5,24 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anagram Checker - Test Reports</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
+        .container { max-width: 1200px; margin: 0 auto; }
         .header {
             background: white;
             border-radius: 10px;
@@ -30,60 +20,30 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        h1 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: #666;
-            font-size: 16px;
-        }
-
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 16px; }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
         }
-
         .stat-card {
             background: white;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        .stat-label {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #667eea;
-        }
-
+        .stat-label { color: #666; font-size: 14px; margin-bottom: 5px; }
+        .stat-value { font-size: 32px; font-weight: bold; color: #667eea; }
         .reports-section {
             background: white;
             border-radius: 10px;
             padding: 30px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .report-grid {
-            display: grid;
-            gap: 15px;
-        }
-
+        h2 { color: #333; margin-bottom: 20px; }
+        .report-grid { display: grid; gap: 15px; }
         .report-item {
             border: 1px solid #e0e0e0;
             border-radius: 8px;
@@ -94,46 +54,16 @@
             gap: 20px;
             align-items: center;
         }
-
         .report-item:hover {
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
             border-color: #667eea;
         }
-
-        .report-id {
-            font-weight: bold;
-            color: #667eea;
-            font-size: 18px;
-        }
-
-        .report-details {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .detail-label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 3px;
-        }
-
-        .detail-value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .report-links {
-            display: flex;
-            gap: 10px;
-        }
-
+        .report-id { font-weight: bold; color: #667eea; font-size: 18px; }
+        .report-details { display: flex; gap: 30px; flex-wrap: wrap; }
+        .detail-item { display: flex; flex-direction: column; }
+        .detail-label { font-size: 12px; color: #666; margin-bottom: 3px; }
+        .detail-value { font-size: 16px; font-weight: 600; color: #333; }
+        .report-links { display: flex; gap: 10px; }
         .btn {
             padding: 10px 20px;
             border-radius: 6px;
@@ -142,49 +72,19 @@
             transition: all 0.3s ease;
             display: inline-block;
         }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
+        .btn-primary { background: #667eea; color: white; }
         .btn-primary:hover {
             background: #5568d3;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
         }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-            transform: translateY(-2px);
-        }
-
-        .pass-rate {
-            font-weight: bold;
-        }
-
-        .pass-rate.good {
-            color: #10b981;
-        }
-
-        .pass-rate.warning {
-            color: #f59e0b;
-        }
-
-        .pass-rate.bad {
-            color: #ef4444;
-        }
-
-        .timestamp {
-            color: #999;
-            font-size: 14px;
-            margin-top: 5px;
-        }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; transform: translateY(-2px); }
+        .pass-rate { font-weight: bold; }
+        .pass-rate.good { color: #10b981; }
+        .pass-rate.warning { color: #f59e0b; }
+        .pass-rate.bad { color: #ef4444; }
+        .timestamp { color: #999; font-size: 14px; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -193,100 +93,99 @@
             <h1>Anagram Checker - Test Reports</h1>
             <p class="subtitle">Comprehensive testing with Unit, API, and BDD tests across multiple browsers</p>
         </div>
-
-        <div class="stats-grid" id="statsGrid">
-            <!-- Stats will be populated by JavaScript -->
-        </div>
-
+        <div class="stats-grid" id="statsGrid"></div>
         <div class="reports-section">
             <h2>Test Run History</h2>
-            <div class="report-grid" id="reportGrid">
-                <!-- Reports will be populated by JavaScript -->
-            </div>
+            <div class="report-grid" id="reportGrid"></div>
         </div>
     </div>
-
     <script>
-        // This will be populated with actual data from test runs
-        const currentRun = {
-            runId: '26-19914373763',
-            totalTests: 102,
-            passed: 102,
-            failed: 0,
-            coverage: '91.4',
-            passRate: 100.0,
-            timestamp: new Date().toISOString(),
-            allureUrl: './latest/index.html',
-            coverageUrl: './htmlcov/index.html'
-        };
-
-        // Load historical runs from localStorage
-        let historicalRuns = JSON.parse(localStorage.getItem('testRuns') || '[]');
-
-        // Add current run to history
-        historicalRuns.unshift(currentRun);
-
-        // Keep only last 20 runs
-        historicalRuns = historicalRuns.slice(0, 20);
-
-        // Save to localStorage
-        localStorage.setItem('testRuns', JSON.stringify(historicalRuns));
-
-        // Display stats
-        const statsGrid = document.getElementById('statsGrid');
-        statsGrid.innerHTML = `
-            <div class="stat-card">
-                <div class="stat-label">Total Tests</div>
-                <div class="stat-value">${currentRun.totalTests}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Pass Rate</div>
-                <div class="stat-value">${currentRun.passRate}%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Coverage</div>
-                <div class="stat-value">${currentRun.coverage}%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Latest Run</div>
-                <div class="stat-value">#${currentRun.runId.split('-')[0]}</div>
-            </div>
-        `;
-
-        // Display reports
-        const reportGrid = document.getElementById('reportGrid');
-        reportGrid.innerHTML = historicalRuns.map((run, index) => {
-            const passRateClass = run.passRate >= 90 ? 'good' : run.passRate >= 70 ? 'warning' : 'bad';
-            const date = new Date(run.timestamp).toLocaleString();
-
-            return `
-                <div class="report-item">
-                    <div class="report-id">Run #${run.runId.split('-')[0]}</div>
-                    <div class="report-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Tests</span>
-                            <span class="detail-value">${run.totalTests}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Coverage</span>
-                            <span class="detail-value">${run.coverage}%</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Pass Rate</span>
-                            <span class="detail-value pass-rate ${passRateClass}">${run.passRate}%</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Passed/Failed</span>
-                            <span class="detail-value">${run.passed}/${run.failed}</span>
-                        </div>
-                    </div>
-                    <div class="report-links">
-                        <a href="${index === 0 ? './latest/index.html' : run.allureUrl}" class="btn btn-primary">Allure Report</a>
-                        <a href="${run.coverageUrl}" class="btn btn-secondary">Coverage</a>
-                    </div>
+        function getPassRateClass(rate) {
+            if (rate >= 90) return 'good';
+            if (rate >= 70) return 'warning';
+            return 'bad';
+        }
+        async function loadRunSummaries() {
+            const maxToCheck = 50;
+            const currentNumber = ${GITHUB_RUN_NUMBER:-0};
+            const runs = [];
+            for (let n = currentNumber; n > 0 && n > currentNumber - maxToCheck; n--) {
+                const url = `./${n}/run-summary.json`;
+                try {
+                    const resp = await fetch(url, { cache: 'no-cache' });
+                    if (!resp.ok) continue;
+                    const data = await resp.json();
+                    runs.push(data);
+                } catch (e) {
+                    // ignore missing/invalid
+                }
+            }
+            runs.sort((a, b) => b.runNumber - a.runNumber);
+            return runs;
+        }
+        function render(runs) {
+            if (!runs.length) return;
+            const currentRun = runs[0];
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Tests</div>
+                    <div class="stat-value">${currentRun.totalTests}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pass Rate</div>
+                    <div class="stat-value">${currentRun.passRate}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Coverage</div>
+                    <div class="stat-value">${currentRun.coverage}%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Latest Run</div>
+                    <div class="stat-value">#${currentRun.runNumber}</div>
                 </div>
             `;
-        }).join('');
+            const reportGrid = document.getElementById('reportGrid');
+            reportGrid.innerHTML = runs.map(run => {
+                const passRateClass = getPassRateClass(run.passRate);
+                const date = new Date(run.timestamp).toLocaleString();
+                return `
+                    <div class="report-item">
+                        <div class="report-id">Run #${run.runNumber}</div>
+                        <div class="report-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Tests</span>
+                                <span class="detail-value">${run.totalTests}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Coverage</span>
+                                <span class="detail-value">${run.coverage}%</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Pass Rate</span>
+                                <span class="detail-value pass-rate ${passRateClass}">${run.passRate}%</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Passed/Failed</span>
+                                <span class="detail-value">${run.passed}/${run.failed}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Timestamp</span>
+                                <span class="detail-value">${date}</span>
+                            </div>
+                        </div>
+                        <div class="report-links">
+                            <a href="${run.allureUrl}" class="btn btn-primary">Allure Report</a>
+                            <a href="${run.coverageUrl}" class="btn btn-secondary">Coverage</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        (async () => {
+            const runs = await loadRunSummaries();
+            render(runs);
+        })();
     </script>
 </body>
 </html>
