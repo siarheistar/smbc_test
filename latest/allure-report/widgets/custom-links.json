@@ -3,6 +3,7 @@
   "data": [
     { "name": "Coverage Report", "url": "../htmlcov/index.html" },
     { "name": "Test Reports Index", "url": "../index.html" },
+    { "name": "Newman API Report", "url": "../newman-report.html" },
     { "name": "Playwright Report (Firefox)", "url": "../playwright-reports/firefox/index.html" },
     { "name": "Playwright Report (Chromium)", "url": "../playwright-reports/chromium/index.html" },
     { "name": "Playwright Report (WebKit)", "url": "../playwright-reports/webkit/index.html" }

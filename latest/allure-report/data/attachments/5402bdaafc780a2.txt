@@ -1,0 +1,4 @@
+Input 1: mañana
+Input 2: añanam
+Expected: True
+Actual: True
