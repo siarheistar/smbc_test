@@ -107,6 +107,73 @@ jobs:
         retention-days: 30
         if-no-files-found: error
 
+  # Newman API Tests - Postman Collection
+  newman-tests:
+    runs-on: ubuntu-22.04
+    container:
+      image: python:3.11-slim
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install system dependencies
+      run: |
+        apt-get update
+        apt-get install -y git curl procps nodejs npm
+
+    - name: Install Newman
+      run: |
+        npm install -g newman newman-reporter-htmlextra newman-reporter-allure
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Start API server
+      run: |
+        uvicorn src.app:app --host 0.0.0.0 --port 8000 &
+        echo $! > api_server.pid
+
+    - name: Wait for API to be ready
+      run: |
+        for i in {1..30}; do
+          if curl -sf http://localhost:8000/health > /dev/null; then
+            echo "API is up and running"
+            exit 0
+          fi
+          echo "Waiting for API... attempt $i/30"
+          sleep 1
+        done
+        echo "API did not become ready in time"
+        exit 1
+
+    - name: Run Newman tests
+      run: |
+        newman run tests/newman/anagram-api.postman_collection.json \
+          -e tests/newman/environment.json \
+          --reporters cli,htmlextra,allure \
+          --reporter-htmlextra-export newman-report.html \
+          --reporter-allure-export allure-results-newman
+
+    - name: Upload Newman test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-results-newman
+        path: allure-results-newman
+        retention-days: 30
+        if-no-files-found: error
+
+    - name: Upload Newman HTML report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: newman-report
+        path: newman-report.html
+        retention-days: 30
+        if-no-files-found: warn
+
   # BDD Tests - Docker Matrix with multiple browsers
   bdd-tests:
     runs-on: ubuntu-22.04
@@ -187,7 +254,7 @@ jobs:
   # Aggregate results and generate custom report
   aggregate-and-report:
     runs-on: ubuntu-22.04
-    needs: [unit-tests, api-tests, bdd-tests]
+    needs: [unit-tests, api-tests, newman-tests, bdd-tests]
     if: always()
 
     steps:
@@ -211,6 +278,20 @@ jobs:
       with:
         name: allure-results-api
         path: artifacts/allure-results-api
+
+    - name: Download Newman test results
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: allure-results-newman
+        path: artifacts/allure-results-newman
+
+    - name: Download Newman HTML report
+      uses: actions/download-artifact@v4
+      continue-on-error: true
+      with:
+        name: newman-report
+        path: artifacts/newman-report
 
     - name: Download BDD test results (Firefox)
       uses: actions/download-artifact@v4
@@ -258,7 +339,7 @@ jobs:
             echo "- $d: $(find "$d" -name \"*-result.json\" | wc -l)"
           fi
         done
-        for d in artifacts/allure-results-unit artifacts/allure-results-api artifacts/allure-results-bdd-firefox artifacts/allure-results-bdd-chromium artifacts/allure-results-bdd-webkit; do
+        for d in artifacts/allure-results-unit artifacts/allure-results-api artifacts/allure-results-newman artifacts/allure-results-bdd-firefox artifacts/allure-results-bdd-chromium artifacts/allure-results-bdd-webkit; do
           if [ -d "$d" ]; then
             count=$(find "$d" -name \"*-result.json\" | wc -l)
             if [ "$count" -eq 0 ]; then
@@ -293,7 +374,7 @@ jobs:
         ls -la artifacts/
         echo ""
         echo "=== Checking each artifact directory ==="
-        for artifact_name in allure-results-unit allure-results-api allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
+        for artifact_name in allure-results-unit allure-results-api allure-results-newman allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
           echo "Checking artifacts/${artifact_name}..."
           if [ -d "artifacts/${artifact_name}" ]; then
             echo "  ✓ Directory exists"
@@ -308,7 +389,7 @@ jobs:
         done
         echo "=== Merging results ==="
         total_copied=0
-        for artifact_name in allure-results-unit allure-results-api allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
+        for artifact_name in allure-results-unit allure-results-api allure-results-newman allure-results-bdd-firefox allure-results-bdd-chromium allure-results-bdd-webkit; do
           artifact_dir="artifacts/${artifact_name}"
           if [ -d "$artifact_dir" ]; then
             echo "Copying from ${artifact_dir}..."
@@ -476,6 +557,19 @@ jobs:
         if [ -d "artifacts/coverage-report/htmlcov" ]; then
           cp -r artifacts/coverage-report/htmlcov/* allure-history/htmlcov/
           echo "Coverage report copied"
+          if [ -f "allure-history/htmlcov/index.html" ]; then
+            cat > /tmp/coverage-header.html << 'COVERAGE_HEADER'
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; text-align: center; margin-bottom: 20px; border-radius: 8px;">
+            <h2 style="margin: 0;">Coverage Report</h2>
+            <p style="margin: 5px 0 0 0;">
+                <a href="../index.html" style="color: white; text-decoration: underline;">← Back to Test Reports Index</a> |
+                <a href="../latest/index.html" style="color: white; text-decoration: underline;">Allure Report</a>
+            </p>
+        </div>
+        COVERAGE_HEADER
+            sed -i '/<body[^>]*>/r /tmp/coverage-header.html' allure-history/htmlcov/index.html
+            echo "Navigation added to coverage report"
+          fi
         fi
 
     - name: Create custom index page
@@ -683,6 +777,7 @@ jobs:
           "data": [
             { "name": "Coverage Report", "url": "../htmlcov/index.html" },
             { "name": "Test Reports Index", "url": "../index.html" },
+            { "name": "Newman API Report", "url": "../newman-report.html" },
             { "name": "Playwright Report (Firefox)", "url": "../playwright-reports/firefox/index.html" },
             { "name": "Playwright Report (Chromium)", "url": "../playwright-reports/chromium/index.html" },
             { "name": "Playwright Report (WebKit)", "url": "../playwright-reports/webkit/index.html" }
@@ -705,7 +800,8 @@ jobs:
             <h2 style="margin: 0;">Run ID: ${{ env.RUN_ID }}</h2>
             <p style="margin: 5px 0 0 0;">
                 <a href="../index.html" style="color: white; text-decoration: underline;">← Back to Test Reports Index</a> |
-                <a href="../htmlcov/index.html" style="color: white; text-decoration: underline;">Coverage Report</a>
+                <a href="../htmlcov/index.html" style="color: white; text-decoration: underline;">Coverage Report</a> |
+                <a href="../newman-report.html" style="color: white; text-decoration: underline;">Newman API Report</a>
             </p>
             <p style="margin: 5px 0 0 0; font-size: 14px;">
                 Playwright Reports:
@@ -750,6 +846,27 @@ jobs:
         done
         echo "Playwright reports merged successfully"
         ls -la allure-history/playwright-reports/
+
+    - name: Copy Newman report
+      run: |
+        if [ -f "artifacts/newman-report/newman-report.html" ]; then
+          echo "Copying Newman report..."
+          cp "artifacts/newman-report/newman-report.html" "allure-history/newman-report.html"
+        else
+          echo "WARNING: Newman report not found"
+          cat > "allure-history/newman-report.html" << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head><title>Newman API Report</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
+          <h1>Newman API Report</h1>
+          <p>No Newman report available for this run.</p>
+          <a href="index.html">Back to Test Reports Index</a>
+        </body>
+        </html>
+        EOF
+        fi
+        echo "Newman report processed"
 
     - name: Copy latest report
       run: |
