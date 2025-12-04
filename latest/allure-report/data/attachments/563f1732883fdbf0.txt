@@ -1,0 +1,4 @@
+Input 1: 100%
+Input 2: %001
+Expected: True
+Actual: True

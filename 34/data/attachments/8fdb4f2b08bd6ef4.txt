@@ -1,0 +1,4 @@
+Input 1: 'a\nb\nc'
+Input 2: 'cba'
+Expected: True
+Actual: True

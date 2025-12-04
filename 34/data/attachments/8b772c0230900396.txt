@@ -1,0 +1,4 @@
+Input 1: rat
+Input 2: car
+Expected: false
+Actual: False
