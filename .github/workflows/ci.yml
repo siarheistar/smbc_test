@@ -120,6 +120,7 @@ jobs:
       options: --user root
     env:
       HOME: /root
+      DOCKER_CONFIG: /tmp/docker-config
 
     steps:
     - uses: actions/checkout@v3
@@ -170,7 +171,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: playwright-report-${{ matrix.browser }}
-        path: playwright-report.html
+        path: playwright-report/
         retention-days: 30
         if-no-files-found: warn
 
@@ -199,30 +200,35 @@ jobs:
 
     - name: Download unit test results
       uses: actions/download-artifact@v4
+      continue-on-error: true
       with:
         name: allure-results-unit
         path: artifacts/allure-results-unit
 
     - name: Download API test results
       uses: actions/download-artifact@v4
+      continue-on-error: true
       with:
         name: allure-results-api
         path: artifacts/allure-results-api
 
     - name: Download BDD test results (Firefox)
       uses: actions/download-artifact@v4
+      continue-on-error: true
       with:
         name: allure-results-bdd-firefox
         path: artifacts/allure-results-bdd-firefox
 
     - name: Download BDD test results (Chromium)
       uses: actions/download-artifact@v4
+      continue-on-error: true
       with:
         name: allure-results-bdd-chromium
         path: artifacts/allure-results-bdd-chromium
 
     - name: Download BDD test results (WebKit)
       uses: actions/download-artifact@v4
+      continue-on-error: true
       with:
         name: allure-results-bdd-webkit
         path: artifacts/allure-results-bdd-webkit
@@ -584,7 +590,7 @@ jobs:
                 }
                 async function loadRunSummaries() {
                     const maxToCheck = 50;
-                    const currentNumber = ${GITHUB_RUN_NUMBER:-0};
+                    const currentNumber = ${{ github.run_number }};
                     const runs = [];
                     for (let n = currentNumber; n > 0 && n > currentNumber - maxToCheck; n--) {
                         const url = `./${n}/run-summary.json`;
@@ -677,9 +683,9 @@ jobs:
           "data": [
             { "name": "Coverage Report", "url": "../htmlcov/index.html" },
             { "name": "Test Reports Index", "url": "../index.html" },
-            { "name": "Playwright Report (Firefox)", "url": "../playwright-reports/firefox.html" },
-            { "name": "Playwright Report (Chromium)", "url": "../playwright-reports/chromium.html" },
-            { "name": "Playwright Report (WebKit)", "url": "../playwright-reports/webkit.html" }
+            { "name": "Playwright Report (Firefox)", "url": "../playwright-reports/firefox/index.html" },
+            { "name": "Playwright Report (Chromium)", "url": "../playwright-reports/chromium/index.html" },
+            { "name": "Playwright Report (WebKit)", "url": "../playwright-reports/webkit/index.html" }
           ]
         }
         EOF
@@ -703,9 +709,9 @@ jobs:
             </p>
             <p style="margin: 5px 0 0 0; font-size: 14px;">
                 Playwright Reports:
-                <a href="../playwright-reports/firefox.html" style="color: white; text-decoration: underline;">Firefox</a> |
-                <a href="../playwright-reports/chromium.html" style="color: white; text-decoration: underline;">Chromium</a> |
-                <a href="../playwright-reports/webkit.html" style="color: white; text-decoration: underline;">WebKit</a>
+                <a href="../playwright-reports/firefox/index.html" style="color: white; text-decoration: underline;">Firefox</a> |
+                <a href="../playwright-reports/chromium/index.html" style="color: white; text-decoration: underline;">Chromium</a> |
+                <a href="../playwright-reports/webkit/index.html" style="color: white; text-decoration: underline;">WebKit</a>
             </p>
         </div>
         EOF
@@ -719,18 +725,24 @@ jobs:
         mkdir -p allure-history/playwright-reports
         for browser in firefox chromium webkit; do
           artifact_dir="artifacts/playwright-report-${browser}"
-          if [ -d "$artifact_dir" ] && [ -f "$artifact_dir/playwright-report.html" ]; then
+          if [ -d "$artifact_dir" ] && [ -f "$artifact_dir/index.html" ]; then
             echo "Copying Playwright report for $browser..."
-            cp "$artifact_dir/playwright-report.html" "allure-history/playwright-reports/${browser}.html"
+            cp -r "$artifact_dir" "allure-history/playwright-reports/${browser}"
+          elif [ -d "$artifact_dir" ]; then
+            echo "Playwright report directory found but index.html missing for $browser"
+            echo "Directory contents:"
+            ls -la "$artifact_dir"
           else
-            echo "WARNING: Playwright report for $browser not found at $artifact_dir/playwright-report.html"
-            cat > "allure-history/playwright-reports/${browser}.html" << EOF
+            echo "WARNING: Playwright report for $browser not found at $artifact_dir"
+            mkdir -p "allure-history/playwright-reports/${browser}"
+            cat > "allure-history/playwright-reports/${browser}/index.html" << EOF
         <!DOCTYPE html>
         <html>
         <head><title>Playwright Report - ${browser}</title></head>
-        <body>
+        <body style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
           <h1>Playwright Report for ${browser}</h1>
           <p>No report available for this browser in this run.</p>
+          <a href="../../index.html">Back to Test Reports Index</a>
         </body>
         </html>
         EOF
