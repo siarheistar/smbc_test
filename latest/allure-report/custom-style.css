@@ -1,0 +1,186 @@
+/* Custom Purple Gradient Theme for Allure Report */
+
+/* Add purple gradient background to body */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    min-height: 100vh;
+}
+
+/* Custom header banner */
+.custom-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 30px;
+    margin: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 1000;
+}
+
+.custom-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    font-weight: 600;
+    color: white;
+}
+
+.custom-header .run-info {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.custom-header .info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.custom-header .info-label {
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.custom-header .info-value {
+    font-weight: 600;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 12px;
+    border-radius: 6px;
+}
+
+.custom-header .nav-links {
+    margin-top: 15px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.custom-header .nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.custom-header .nav-link:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Style the main content area */
+#content {
+    background: white;
+    margin: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Enhance the sidebar */
+.side-nav {
+    background: #f8f9fa !important;
+}
+
+/* Style badges with purple theme */
+.badge--passed {
+    background: #10b981 !important;
+}
+
+.badge--failed {
+    background: #ef4444 !important;
+}
+
+.badge--broken {
+    background: #f59e0b !important;
+}
+
+.badge--skipped {
+    background: #6b7280 !important;
+}
+
+/* Enhanced statistics cards */
+.statistic__row {
+    transition: all 0.3s ease;
+}
+
+.statistic__row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Purple accent for links */
+a {
+    color: #667eea !important;
+}
+
+a:hover {
+    color: #5568d3 !important;
+}
+
+/* Enhanced buttons */
+.button, .btn {
+    background: #667eea !important;
+    transition: all 0.3s ease;
+}
+
+.button:hover, .btn:hover {
+    background: #5568d3 !important;
+    transform: translateY(-2px);
+}
+
+/* Status badges with better styling */
+.status-toggle {
+    border-radius: 8px !important;
+}
+
+/* Severity badges */
+.severity--critical {
+    background: #ef4444 !important;
+}
+
+.severity--high {
+    background: #f59e0b !important;
+}
+
+.severity--normal {
+    background: #667eea !important;
+}
+
+.severity--low {
+    background: #6b7280 !important;
+}
+
+/* Enhanced pane styling */
+.pane {
+    background: white;
+    border-radius: 8px;
+}
+
+/* Table enhancements */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table__row:hover {
+    background: rgba(102, 126, 234, 0.05) !important;
+}
+
+/* Widget enhancements */
+.widget {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.widget:hover {
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+}
